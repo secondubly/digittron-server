@@ -1,0 +1,19 @@
+{
+  "name": "digittron-server",
+  "version": "1.0.0",
+  "description": "web server for digittron",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/secondubly/digittron-server.git"
+  },
+  "author": "secondubly",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/secondubly/digittron-server/issues"
+  },
+  "homepage": "https://github.com/secondubly/digittron-server#readme"
+}
