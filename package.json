@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/secondubly/digittron-server#readme",
   "dependencies": {
+    "@fastify/oauth2": "^7.5.0",
     "fastify": "^4.24.3"
   },
   "devDependencies": {
