@@ -11,12 +11,18 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/src/server.ts",
+            "program": "${workspaceFolder}/server/src/server.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
             ],
             "envFile": "${workspaceFolder}/src/.env"
+        },
+        {
+            "command": "{workspaceFolder}/panel/node_modules/.bin/astro --config {workspaceFolder}/panel/astro.config.mjs dev",
+            "name": "Development client",
+            "request": "launch",
+            "type": "node-terminal"
         }
     ]
 }
