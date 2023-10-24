@@ -4,11 +4,11 @@
   "description": "web server for digittron",
   "main": "server.js",
   "scripts": {
-		"client:astro": "astro --config panel/astro.config.mjs --root ./panel",
-		"client:build": "panel/node_modules/.bin/astro --config ./astro.config.mjs --root . build",
-		"client:dev": "panel/node_modules/.bin/astro --root ./panel dev",
-		"client:preview": "panel/node_modules/.bin/astro --config ./astro.config.mjs --root preview",
-		"client:start": "panel/node_modules/.bin/astro --config ./astro.config.mjs --ro dev",
+		"client:astro": "cd panel && node_modules/.bin/astro",
+		"client:build": "cd panel && node_modules/.bin/astro build",
+		"client:dev": "cd panel && node_modules/.bin/astro dev",
+		"client:preview": "cd panel && node_modules/.bin/astro preview",
+		"client:start": "cd panel && node_modules/.bin/astro dev",
     "build": "tsc -p server/src/tsconfig.json",
     "start": "node server/dist/server.js"
   },
