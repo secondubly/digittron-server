@@ -23,6 +23,13 @@
             "name": "Development client",
             "request": "launch",
             "type": "node-terminal"
-        }
+        },
+        {
+            "name": "Next.js: debug server-side",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "cd client && npm run dev",
+            "outputCapture": "console"
+          },
     ]
 }

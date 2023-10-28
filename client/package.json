@@ -1,0 +1,23 @@
+{
+  "name": "client",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.2.1",
+    "@fastify/cookie": "^9.1.0",
+    "@fastify/session": "^10.5.0",
+    "@matthewp/astro-fastify": "^3.0.0",
+    "astro": "^3.3.4",
+    "connect-redis": "^7.1.0",
+    "express-session": "^1.17.3",
+    "redis": "^4.6.10",
+    "typescript": "^5.2.2"
+  }
+}
