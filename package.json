@@ -4,13 +4,11 @@
   "description": "web server for digittron",
   "main": "server.js",
   "scripts": {
-    "client:astro": "cd panel && node_modules/.bin/astro",
-    "client:build": "cd panel && node_modules/.bin/astro build",
-    "client:dev": "cd panel && node_modules/.bin/astro dev",
-    "client:preview": "cd panel && node_modules/.bin/astro preview",
-    "client:start": "cd panel && node_modules/.bin/astro dev",
-    "build": "tsc -p server/src/tsconfig.json",
-    "start": "node server/dist/server.js"
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
   },
   "repository": {
     "type": "git",
@@ -23,8 +21,18 @@
   },
   "homepage": "https://github.com/secondubly/digittron-server#readme",
   "dependencies": {
-    "@fastify/oauth2": "^7.5.0",
-    "fastify": "^4.24.3"
+    "@astrojs/node": "^6.0.3",
+    "@auth/core": "^0.18.0",
+    "@fastify/cookie": "^9.1.0",
+    "@fastify/middie": "^8.3.0",
+    "@fastify/session": "^10.5.0",
+    "@fastify/static": "^6.12.0",
+    "@matthewp/astro-fastify": "^3.0.0",
+    "astro": "^3.4.2",
+    "auth-astro": "^3.0.1",
+    "connect-redis": "^7.1.0",
+    "fastify": "^4.24.3",
+    "ioredis": "^5.3.2"
   },
   "devDependencies": {
     "@types/node": "^20.8.7",
