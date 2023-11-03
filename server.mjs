@@ -32,11 +32,7 @@ await app
 app.use(ssrHandler);
 
 app.use((req, res, next) => {
-    const locals = {
-        title: 'New title',
-      };
-    
-      ssrHandler(req, res, next, locals);
+  ssrHandler(req, res, next, locals);
 })
 
 app.listen({ port: 8888 });
