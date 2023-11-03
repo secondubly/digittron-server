@@ -1,14 +1,19 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import scopes from '../resources/oauth/scopes.json'
-
+import crypto from 'crypto'
 
 interface Props {
   state: string
 }
-const isAuthed = false;
-const { state } = Astro.props as Props
+let isAuthed = false;
+let baseUrl = 'https://id.twitch.tv/oauth'
+const state = crypto.randomBytes(32).toString('hex')
 
+console.log(scopes.broadcaster)
+const oauthRedirect = (type: string) => {
+  window.sessionStorage.setItem('state', state)
+}
 
 ---
 
