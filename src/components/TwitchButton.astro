@@ -1,0 +1,28 @@
+---
+import crypto from 'crypto'
+interface Props {
+    state?: string
+}
+const { state = crypto.randomBytes(32).toString('hex') } = Astro.props
+console.log(state)
+---
+<twitch-oauth-button data-state={state}>
+    <button>Twitch Broadcaster Auth</button>
+</twitch-oauth-button>
+
+<script>
+    class TwitchButton extends HTMLElement { 
+        constructor() { 
+        super()
+
+        // Read the message from the data attribute. 
+        const state = this.dataset.state;
+        const button = this.querySelector('button'); 
+        button.addEventListener('click', () => { 
+            alert(state); 
+        }); 
+        } 
+    }
+
+    customElements.define('twitch-oauth-button', TwitchButton)
+</script>
