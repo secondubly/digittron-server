@@ -4,7 +4,6 @@ interface Props {
     state?: string
 }
 const { state = crypto.randomBytes(32).toString('hex') } = Astro.props
-console.log(state)
 ---
 <twitch-oauth-button data-state={state}>
     <button>Twitch Broadcaster Auth</button>
@@ -19,7 +18,7 @@ console.log(state)
         const state = this.dataset.state;
         const button = this.querySelector('button'); 
         button.addEventListener('click', () => { 
-            alert(state); 
+            // build out twitch oath url
         }); 
         } 
     }
