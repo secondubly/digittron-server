@@ -2,7 +2,7 @@
   "name": "digittron-server",
   "version": "1.0.0",
   "description": "web server for digittron",
-  "main": "server.js",
+  "main": "server.mjs",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",

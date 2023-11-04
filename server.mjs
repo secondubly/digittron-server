@@ -1,4 +1,3 @@
-import RedisStore from 'connect-redis';
 import Fastify from 'fastify';
 import fastifyMiddie from '@fastify/middie'
 import fastifyStatic from '@fastify/static'
@@ -19,7 +18,7 @@ const store = new RedisStore({
 
 app.register(fastifyCookie)
 app.register(fastifySession, {
-  secret: process.env.APP_SECRET,
+  secret: '3034219d810fc106e2c5da07063a42157f1fe9a50910425be2eed84825ded3f0',
   cookie: { secure: false },
   store
 })
@@ -32,7 +31,18 @@ await app
 app.use(ssrHandler);
 
 app.use((req, res, next) => {
-  ssrHandler(req, res, next, locals);
-})
+  console.log('req', req.url)
+  console.log('res', res.url)
+  const locals = {
+    title: 'New title',
+  };
 
-app.listen({ port: 8888 });
+  ssrHandler(req, res, next, locals);
+});
+
+app.listen({ port: 8888 }, function (err, address) {
+  if (err) {
+    fastify.log.error(err)
+    process.exit(1)
+  }
+});

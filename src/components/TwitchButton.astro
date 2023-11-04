@@ -1,8 +1,5 @@
 ---
 import crypto from 'crypto'
-interface Props {
-    state?: string
-}
 const { state = crypto.randomBytes(32).toString('hex') } = Astro.props
 ---
 <twitch-oauth-button data-state={state}>
@@ -10,15 +7,31 @@ const { state = crypto.randomBytes(32).toString('hex') } = Astro.props
 </twitch-oauth-button>
 
 <script>
+    import scopes from '../resources/oauth/scopes.json'
+    let twitchBaseUri = 'https://id.twitch.tv/oauth2/authorize'
     class TwitchButton extends HTMLElement { 
         constructor() { 
         super()
 
-        // Read the message from the data attribute. 
-        const state = this.dataset.state;
-        const button = this.querySelector('button'); 
-        button.addEventListener('click', () => { 
-            // build out twitch oath url
+        const state = this.dataset.state as string;
+        const button = this.querySelector<HTMLElement>('button');
+        if (!button) {
+            throw new ReferenceError("Twitch Oauth Button not found.");
+        }
+
+        button.addEventListener('click', () => {
+            window.sessionStorage.setItem('state', state)
+            const botScopes = Object.keys(scopes.bot).join('+')
+            const CLIENT_ID = import.meta.env.PUBLIC_TWITCH_CLIENT_ID
+            const redirect_uri = `${window.location.origin}/oauth`
+            
+            const uri = `${twitchBaseUri}?response_type=code`
+                + `&client_id=${CLIENT_ID}`
+                + `&redirect_uri=${redirect_uri}`
+                + '&force_verify=true'
+                + `&scopes=${botScopes}`
+                + `&state=${state}`
+            window.location.href=uri
         }); 
         } 
     }
