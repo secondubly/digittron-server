@@ -3,6 +3,8 @@ import Layout from '../layouts/Layout.astro'
 import TwitchOauthButton from '../components/TwitchButton.astro'
 
 const isAuthed = false;
+const session = await Astro.locals.auth.validate();
+if (!session) return Astro.redirect("/login", 302);
 ---
 
 <Layout title="Welcome to Astro.">
@@ -38,6 +40,12 @@ const isAuthed = false;
 		<h1>Welcome to <span class="text-gradient">Astro</span></h1>
     <h1>{ isAuthed ? "Is Authed" : "Is Not Authed" }</h1>
     <TwitchOauthButton />
+	<h1>Profile</h1>
+	<p>User id: {session.user.userId}</p>
+	<p>Username: {session.user.username}</p>
+	<form method="post" action="/logout">
+		<input type="submit" value="Sign out" />
+	</form>
 	</main>
 </Layout>
 
