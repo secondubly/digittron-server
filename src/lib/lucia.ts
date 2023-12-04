@@ -2,7 +2,7 @@ import { lucia } from "lucia"
 import { astro } from "lucia/middleware";
 import { prisma as adapter } from "@lucia-auth/adapter-prisma"
 import { createContext } from "@secondubly/digittron-db"
-const { prisma } = await createContext()
+export const { prisma } = await createContext()
 
 export const auth = lucia({
     env: "DEV",

@@ -1,10 +1,32 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import TwitchOauthButton from '../components/TwitchButton.astro'
+import { prisma } from '../lib/lucia.js'
 
-const isAuthed = false;
 const session = await Astro.locals.auth.validate();
 if (!session) return Astro.redirect("/login", 302);
+
+const result = await prisma.commands.findMany({
+	include: {
+		command_permissions: {
+			select: {
+				level: true
+			}
+		}
+	}
+})
+
+const commands = result.map((command) => {
+	return {
+		id: command.id,
+		name: command.name,
+		aliases: command.aliases,
+		response: command.response,
+		enabled: command.enabled,
+		visible: command.visible,
+		permission_level: command.command_permissions.level
+	}
+})
 ---
 
 <Layout title="Welcome to Astro.">
@@ -38,14 +60,30 @@ if (!session) return Astro.redirect("/login", 302);
 			</defs>
 		</svg>
 		<h1>Welcome to <span class="text-gradient">Astro</span></h1>
-    <h1>{ isAuthed ? "Is Authed" : "Is Not Authed" }</h1>
     <TwitchOauthButton />
 	<h1>Profile</h1>
 	<p>User id: {session.user.userId}</p>
 	<p>Username: {session.user.username}</p>
 	<form method="post" action="/logout">
-		<input type="submit" value="Sign out" />
+		<input class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-2 rounded inline-flex items-center" type="submit" value="Sign out" />
 	</form>
+
+	<table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+		<thead class="text-xs text-white-700 uppercase bg-gray-800 dark:bg-gray-700 dark:text-gray-400">
+			<tr>
+				<th scope="col" class="px-6 py-3">Command</th>
+				<th scope="col" class="px-6 py-3">Response</th>
+			</tr>
+		</thead>
+		<tbody>
+			{commands.map((command) => (
+				<tr class="bg-gray border-b dark:bg-gray-800 dark:border-gray-700">
+					<th scope="row" class="px-6 py-4 font-medium text-white-900 whitespace-nowrap dark:text-white">{command.name}</th>
+					<td class="px-6 py-4">{command.response}</td>
+				</tr>
+			))}
+		</tbody>
+	</table>
 	</main>
 </Layout>
 
@@ -82,7 +120,7 @@ if (!session) return Astro.redirect("/login", 302);
 		background-size: 400%;
 		background-position: 0%;
 	}
-  button {
-    margin: 0 auto;
-  }
+	button {
+		margin: 0 auto;
+	}
 </style>

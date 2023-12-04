@@ -22,10 +22,13 @@
   "homepage": "https://github.com/secondubly/digittron-server#readme",
   "dependencies": {
     "@astrojs/node": "^6.1.0",
+    "@astrojs/tailwind": "^5.0.2",
     "@lucia-auth/adapter-prisma": "^3.0.2",
     "@secondubly/digittron-db": "4.0.1",
     "astro": "^3.4.2",
-    "lucia": "^2.7.4"
+    "flowbite": "^2.2.0",
+    "lucia": "^2.7.4",
+    "tailwindcss": "^3.3.6"
   },
   "devDependencies": {
     "@types/node": "^20.8.7",
