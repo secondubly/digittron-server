@@ -1,0 +1,56 @@
+---
+import IndexButton from "../components/IndexButton.astro";
+---
+<!doctype html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="description" content="Astro description" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Digittron Control Panel</title>
+    </head>
+    <body>
+        <main>
+            <!-- <div class="w-3/4 h-3/4 grid grid-cols-2 grid-rows-2">
+                <div>
+                    <IndexButton title="Control Panel" />
+                </div>
+                <div>
+                    <IndexButton title="Bot Setup" />
+                </div>
+                <div>
+                    <IndexButton title="Command List" />
+                </div>
+                <div>
+                    <IndexButton title="Song Request List" />
+                </div>
+            </div> -->
+            <div class="grid gap-4 grid-cols-3 grid-rows-2">
+                <div>
+                    <IndexButton title="Control Panel" />
+                </div>
+                <div>
+                    <IndexButton title="Bot Setup" />
+                </div>
+                <div>
+                    <IndexButton title="Command List" />
+                </div>
+                <div>
+                    <IndexButton title="Song Request List" />
+                </div>
+            </div>
+            <div class="grid gap-4 grid-cols-3 grid-rows-2">
+                <div class="p-4 rounded-lg shadow-lg bg-fuchsia-500">1</div>
+                <div class="p-4 rounded-lg shadow-lg bg-fuchsia-500">2</div>
+                <div class="p-4 rounded-lg shadow-lg bg-fuchsia-500">3</div>
+                <div class="p-4 rounded-lg shadow-lg bg-fuchsia-500">4</div>
+                <div class="p-4 rounded-lg shadow-lg bg-fuchsia-500">5</div>
+                <div class="p-4 rounded-lg shadow-lg bg-fuchsia-500">6</div>
+                <div class="p-4 rounded-lg shadow-lg bg-fuchsia-500">7</div>
+                <div class="p-4 rounded-lg shadow-lg bg-fuchsia-500">8</div>
+                <div class="p-4 rounded-lg shadow-lg bg-fuchsia-500">9</div>
+            </div>
+        </main>
+    </body>
+</html>

@@ -33,7 +33,7 @@ if (Astro.request.method === "POST") {
 				attributes: {}
 			});
 			Astro.locals.auth.setSession(session); // set session cookie
-			return Astro.redirect("/", 302); // redirect to profile page
+			return Astro.redirect("/dashboard", 302); // redirect to profile page
 		} catch (e) {
 			if (
 				e instanceof LuciaError &&
@@ -54,7 +54,7 @@ if (Astro.request.method === "POST") {
 
 // redirect authenticated users
 const session = await Astro.locals.auth.validate();
-if (session) return Astro.redirect("/", 302); // redirect to profile page
+if (session) return Astro.redirect("/dashboard", 302); // redirect to profile page
 ---
 
 <html lang="en">

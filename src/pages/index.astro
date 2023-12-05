@@ -1,10 +1,11 @@
 ---
-import Layout from '../layouts/Layout.astro'
+import IndexLayout from '../app/IndexLayout.astro';
+import Layout from '../app/Layout.astro'
 import TwitchOauthButton from '../components/TwitchButton.astro'
 import { prisma } from '../lib/lucia.js'
 
-const session = await Astro.locals.auth.validate();
-if (!session) return Astro.redirect("/login", 302);
+// const session = await Astro.locals.auth.validate();
+// if (!session) return Astro.redirect("/login", 302);
 
 const result = await prisma.commands.findMany({
 	include: {
@@ -28,8 +29,10 @@ const commands = result.map((command) => {
 	}
 })
 ---
+<IndexLayout>
 
-<Layout title="Welcome to Astro.">
+</IndexLayout>
+<!-- <Layout title="Digittron Control Panel">
 	<main>
 		<svg
 			class="astro-a"
@@ -68,6 +71,7 @@ const commands = result.map((command) => {
 		<input class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-2 rounded inline-flex items-center" type="submit" value="Sign out" />
 	</form>
 
+	<table></table>
 	<table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
 		<thead class="text-xs text-white-700 uppercase bg-gray-800 dark:bg-gray-700 dark:text-gray-400">
 			<tr>
@@ -85,42 +89,4 @@ const commands = result.map((command) => {
 		</tbody>
 	</table>
 	</main>
-</Layout>
-
-<style>
-	main {
-		margin: auto;
-		padding: 1rem;
-		width: 800px;
-		max-width: calc(100% - 2rem);
-		color: white;
-		font-size: 20px;
-		line-height: 1.6;
-	}
-	.astro-a {
-		position: absolute;
-		top: -32px;
-		left: 50%;
-		transform: translatex(-50%);
-		width: 220px;
-		height: auto;
-		z-index: -1;
-	}
-	h1 {
-		font-size: 4rem;
-		font-weight: 700;
-		line-height: 1;
-		text-align: center;
-		margin-bottom: 1em;
-	}
-	.text-gradient {
-		background-image: var(--accent-gradient);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-size: 400%;
-		background-position: 0%;
-	}
-	button {
-		margin: 0 auto;
-	}
-</style>
+</Layout> -->
