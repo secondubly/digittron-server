@@ -1,15 +1,74 @@
 ---
-const { title, icon, desc } = Astro.props;
+const { title } = Astro.props;
 ---
-<button type="button" class="
-    w-full
-    px-6 py-3.5
-    text-base font-bold 
-    text-ice bg-twitch-purple 
-    hover:bg-purple-600 focus:ring-4 
-    focus:outline-none focus:ring-blue-300 
-    rounded-lg text-center 
-    dark:bg-blue-600 dark:hover:bg-blue-700 
-    dark:focus:ring-blue-800">
-        {title}
-</button>
+{
+(title === "Control Panel") &&
+    <button type="button" class="
+        w-full
+        inline-flex
+        items-center
+        text-center
+        px-6
+        py-3.5
+        text-lg font-bold 
+        text-ice bg-twitch-purple 
+        hover:bg-purple-600 focus:ring-4 
+        focus:outline-none focus:ring-blue-300
+        rounded-lg">
+        <svg class="w-6 h-6 me-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M0 0v16h16V0H0zm13 15H1V3h12v12zm2 0h-1v-1h1v1zm0-2h-1V5h1v8zm0-9h-1V3h1v1z"/></svg>
+            {title}
+    </button>
+}
+{
+    (title === "Bot Setup") &&
+    <button type="button" class="
+        w-full
+        inline-flex
+        items-center
+        text-center
+        px-6
+        py-3.5
+        text-lg font-bold 
+        text-ice bg-twitch-purple 
+        hover:bg-purple-600 focus:ring-4 
+        focus:outline-none focus:ring-blue-300
+        rounded-lg">
+        <svg class="w-6 h-6 me-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/></svg>
+            {title}
+    </button>
+}
+{
+    (title === "Command List") &&
+    <button type="button" class="
+        w-full
+        inline-flex
+        items-center
+        text-center
+        px-6 py-3.5
+        text-lg font-bold 
+        text-ice bg-twitch-purple 
+        hover:bg-purple-600 focus:ring-4 
+        focus:outline-none focus:ring-blue-300
+        rounded-lg">
+        <svg class="w-6 h-6 me-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M7 9V7h14v2H7Zm0 4v-2h14v2H7Zm0 4v-2h14v2H7ZM4 9q-.425 0-.712-.288T3 8q0-.425.288-.712T4 7q.425 0 .713.288T5 8q0 .425-.288.713T4 9Zm0 4q-.425 0-.712-.288T3 12q0-.425.288-.712T4 11q.425 0 .713.288T5 12q0 .425-.288.713T4 13Zm0 4q-.425 0-.712-.288T3 16q0-.425.288-.712T4 15q.425 0 .713.288T5 16q0 .425-.288.713T4 17Z"/></svg>
+            {title}
+    </button>
+}
+{
+    (title === "Song Request List") &&
+    <button type="button" class="
+        w-full
+        inline-flex
+        items-center
+        text-center
+        px-6
+        py-3.5
+        text-lg font-bold 
+        text-ice bg-twitch-purple 
+        hover:bg-purple-600 focus:ring-4 
+        focus:outline-none focus:ring-blue-300
+        rounded-lg">
+        <svg class="w-6 h-6 me-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M21 3v12.5a3.5 3.5 0 0 1-3.5 3.5a3.5 3.5 0 0 1-3.5-3.5a3.5 3.5 0 0 1 3.5-3.5c.54 0 1.05.12 1.5.34V6.47L9 8.6v8.9A3.5 3.5 0 0 1 5.5 21A3.5 3.5 0 0 1 2 17.5A3.5 3.5 0 0 1 5.5 14c.54 0 1.05.12 1.5.34V6l14-3Z"/></svg>
+            {title}
+    </button>
+}

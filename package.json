@@ -26,6 +26,7 @@
     "@lucia-auth/adapter-prisma": "^3.0.2",
     "@secondubly/digittron-db": "4.0.1",
     "astro": "^3.4.2",
+    "astro-preload": "^1.1.2",
     "flowbite": "^2.2.0",
     "lucia": "^2.7.4",
     "tailwindcss": "^3.3.6"
