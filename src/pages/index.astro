@@ -3,9 +3,6 @@ import IndexLayout from '../app/IndexLayout.astro';
 import IndexButton from '../components/IndexButton.astro';
 import { prisma } from '../lib/lucia.js'
 
-// const session = await Astro.locals.auth.validate();
-// if (!session) return Astro.redirect("/login", 302);
-
 const result = await prisma.commands.findMany({
 	include: {
 		command_permissions: {
