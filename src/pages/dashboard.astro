@@ -1,7 +1,8 @@
 ---
 import LayoutSidebar from "../app/LayoutSidebar.astro";
+const session = await Astro.locals.auth.validate();
+if (!session) return Astro.redirect("/login", 302);
 ---
-
 <LayoutSidebar>
     
 </LayoutSidebar>

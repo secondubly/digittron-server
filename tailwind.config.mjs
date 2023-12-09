@@ -8,7 +8,10 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				'twitch-purple': '#9146FF',
+				'twitch-purple': {
+					DEFAULT: '#9146FF',
+					dark: '#3b0764'
+				},
 				'ice': '#F0F0FF'
 			}
 		}
