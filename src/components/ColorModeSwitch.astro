@@ -43,9 +43,7 @@
 
     // Change the icons inside the button based on previous settings
     if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        console.log('before remove', themeToggleLightIcon?.classList)
         themeToggleLightIcon?.classList.toggle('hidden');
-        console.log('after remove', themeToggleLightIcon?.classList)
     } else {
         themeToggleDarkIcon?.classList.remove('hidden');
     }
