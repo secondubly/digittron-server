@@ -1,29 +1,6 @@
 ---
 import IndexLayout from '../app/IndexLayout.astro';
 import IndexButton from '../components/IndexButton.astro';
-import { prisma } from '../lib/lucia.js'
-
-const result = await prisma.commands.findMany({
-	include: {
-		command_permissions: {
-			select: {
-				level: true
-			}
-		}
-	}
-})
-
-const commands = result.map((command) => {
-	return {
-		id: command.id,
-		name: command.name,
-		aliases: command.aliases,
-		response: command.response,
-		enabled: command.enabled,
-		visible: command.visible,
-		permission_level: command.command_permissions.level
-	}
-})
 ---
 <IndexLayout>
 	<main class="px-6 bg-gray-50 dark: dark:bg-gray-900 w-full h-full min-h-screen pt-16">
