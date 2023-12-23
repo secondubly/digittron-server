@@ -1,10 +1,14 @@
 ---
 import EnabledButton from '../components/EnabledButton.astro'
 import DisabledButton from '../components/DisabledButton.astro'
-
+import EnabledButtonToggle from '../components/EnableButtonToggle.astro'
+import CommandConfigButton from './CommandConfigButton.astro'
 import { prisma } from '../lib/lucia.js'
 
 const result = await prisma.commands.findMany({
+    where: {
+        type: 'DEFAULT'
+    },
 	include: {
 		command_permissions: {
 			select: {
@@ -25,6 +29,8 @@ const commands = result.map((command) => {
 		permission_level: command.command_permissions.level
 	}
 })
+
+console.log(commands)
 ---
 <div class="m-12 relative overflow-x-auto shadow-md sm:rounded-lg">
     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -45,8 +51,11 @@ const commands = result.map((command) => {
             {commands.map((command) => (
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                     <td class="px-6 py-4">{command.enabled ? <EnabledButton /> : <DisabledButton />}</td>
-                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{command.name}</th>
-                    <td class="px-6 py-4">{'Placeholder'}</td>
+                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">!{command.name}</th>
+                    <td class="px-6 py-4">
+                            <EnabledButtonToggle />
+                            <CommandConfigButton />
+                    </td>
                 </tr>
             ))}
         </tbody>
