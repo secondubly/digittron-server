@@ -52,7 +52,7 @@ const commands = result.map((command) => {
                     <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">!{command.name}</th>
                     <td class="px-6 py-4">
                             <EnabledButtonToggle />
-                            <CommandConfigButton command={command.name}/>
+                            <CommandConfigButton command={command.name} permission={command.permission_level}/>
                     </td>
                 </tr>
             ))}

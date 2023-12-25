@@ -24,7 +24,7 @@
     "@astrojs/node": "^6.1.0",
     "@astrojs/tailwind": "^5.0.2",
     "@lucia-auth/adapter-prisma": "^3.0.2",
-    "@secondubly/digittron-db": "5.0.0",
+    "@secondubly/digittron-db": "5.1.6",
     "astro": "^3.4.2",
     "astro-preload": "^1.1.2",
     "flowbite": "^2.2.0",
