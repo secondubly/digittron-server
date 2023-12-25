@@ -13,8 +13,6 @@ const permissionLevels = Object.values($Enums.PermissionLevel).reduce((result, p
     
     return result
 }, [] as string[])
-
-console.log(permissionLevels)
 ---
 <style type="text/css">
     input[type=range]::-moz-range-track {
@@ -84,8 +82,8 @@ type="button" class="
                             <label for="permission-level" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">User Level:</label>
                             <select id="permission-level" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">                  
                                 {permissionLevels.map((perm) => {
-                                    return permission === perm.toLocaleUpperCase() ? <option value={perm.toLocaleUpperCase()} selected="selected">{perm}</option> : 
-                                        <option value={perm.toLocaleUpperCase()} selected="selected">{perm}</option>
+                                    const permissionUppercase = perm.toLocaleUpperCase()
+                                    return <option value={permissionUppercase} selected={permissionUppercase === permission ? "selected" : undefined}>{perm}</option>
                                 })}
                             </select>
                         </div>
@@ -107,11 +105,19 @@ type="button" class="
 </div>
 
 <script>
-    const value = document.querySelector("#cooldown-value");
-    const input = document.querySelector("#cooldown-timer");
+    const value = document.querySelector<HTMLElement>("#cooldown-value")
+    if (!value) {
+        throw new ReferenceError("#cooldown-value element not found.");
+    }
+
+    const input = document.querySelector<HTMLInputElement>("#cooldown-timer")
+    if (!input) {
+        throw new ReferenceError("#cooldown-timer element not found.");   
+    }
     value.textContent = `${input.value} seconds`;
     input.addEventListener("input", (event) => {
-        value.textContent = `${event.target.value} seconds`;
+        const target = event.target as HTMLInputElement
+        value.textContent = `${target.value} seconds`;
     });
 
 </script>
