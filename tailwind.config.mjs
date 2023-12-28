@@ -5,6 +5,9 @@ export default {
 		'./node_modules/flowbite/**/*.js'
 	],
 	darkMode: 'class',
+	corePlugins: {
+		overflow: false
+	},
 	theme: {
 		extend: {
 			colors: {

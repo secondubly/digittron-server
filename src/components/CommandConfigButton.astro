@@ -1,18 +1,7 @@
 ---
-const { command, permission } = Astro.props
-import { $Enums } from "@prisma/client"
-
-const permissionLevels = Object.values($Enums.PermissionLevel).reduce((result, permission) => {
-    if (permission === $Enums.PermissionLevel.VIP) {
-        result.push(permission)
-    } else {
-        let titleCase = permission[0].toLocaleUpperCase()
-        const final = titleCase + permission.substring(1, permission.length).toLocaleLowerCase()
-        result.push(final)
-    }
-    
-    return result
-}, [] as string[])
+const { command } = Astro.props
+import CooldownTimer from "./CooldownTimer.astro"
+import UserLevelSelector from './UserLevelSelector.astro'
 ---
 <style type="text/css">
     input[type=range]::-moz-range-track {
@@ -79,19 +68,9 @@ type="button" class="
                 <div class="p-4 md:p-5 space-y-4">
                     <form class="max-w-sm mx-auto">
                         <div class="mb-5">
-                            <label for="permission-level" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">User Level:</label>
-                            <select id="permission-level" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">                  
-                                {permissionLevels.map((perm) => {
-                                    const permissionUppercase = perm.toLocaleUpperCase()
-                                    return <option value={permissionUppercase} selected={permissionUppercase === permission ? "selected" : undefined}>{perm}</option>
-                                })}
-                            </select>
+                            <UserLevelSelector />    
                         </div>
-                        <div class="relative mb-6">
-                            <label for="cooldown-timer" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cooldown Timer</label>
-                            <input id="cooldown-timer" type="range" min="5" max="300" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                            <output id="cooldown-value" />
-                        </div>
+                        <CooldownTimer/>
                     </form>
                 </div>
             </div>

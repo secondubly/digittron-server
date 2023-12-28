@@ -3,6 +3,7 @@ import { astro } from "lucia/middleware";
 import { prisma as adapter } from "@lucia-auth/adapter-prisma"
 import { createContext } from "@secondubly/digittron-db"
 export const { prisma } = await createContext()
+
 const ONE_DAY =     86400000; // 24 hours in milliseconds
 export const auth = lucia({
     env: "DEV",

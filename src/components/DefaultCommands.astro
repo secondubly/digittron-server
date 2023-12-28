@@ -3,6 +3,29 @@ import CommandState from './CommandState.astro'
 import EnabledButtonToggle from '../components/EnableButtonToggle.astro'
 import CommandConfigButton from './CommandConfigButton.astro'
 import { prisma } from '../lib/lucia.js'
+import { $Enums } from '@prisma/client'
+
+type CommandResult = {
+    id: number,
+    name: string,
+    aliases: string[],
+    response: string,
+    enabled: boolean,
+    visible: boolean,
+    command_permissions: {
+        level: $Enums.PermissionLevel
+    }
+}
+
+type Command = {
+    id: number,
+    name: string,
+    aliases: string[],
+    response: string,
+    enabled: boolean,
+    visible: boolean,
+    permission_level: $Enums.PermissionLevel
+}
 
 const result = await prisma.commands.findMany({
     where: {
@@ -17,7 +40,7 @@ const result = await prisma.commands.findMany({
 	}
 })
 
-const commands = result.map((command) => {
+const commands = result.map((command: CommandResult) => {
 	return {
 		id: command.id,
 		name: command.name,
@@ -45,7 +68,7 @@ const commands = result.map((command) => {
             </tr>
         </thead>
         <tbody>
-            {commands.map((command) => (
+            {commands.length > 0 && commands.map((command: Command) => (
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                     <td class="px-6 py-4"><CommandState enabled={command.enabled}/></td>
                     <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">!{command.name}</th>
@@ -55,6 +78,14 @@ const commands = result.map((command) => {
                     </td>
                 </tr>
             ))}
+
+            {commands.length === 0 && 
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <td colspan="3" class="text-center px-6 py-4">
+                        No commands available.
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
 </div>
