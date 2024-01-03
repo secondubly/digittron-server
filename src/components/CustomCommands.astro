@@ -2,7 +2,7 @@
 import AddCommandForm from "./AddCommandForm.astro"
 import EditCommandForm from './EditCommandForm.astro'
 import * as Prisma from "@secondubly/digittron-db"
-
+import { toTitleCase } from '../resources/utils'
 
 const { prisma }  = await Prisma.createContext()
 
@@ -27,7 +27,8 @@ const commands = result.map((command) => {
 		response: command.response,
 		enabled: command.enabled,
 		visible: command.visible,
-		permission_level: command.command_permissions.level
+        cooldown: command.cooldown,
+		permission_level: toTitleCase(command.command_permissions.level)
 	}
 })
 ---

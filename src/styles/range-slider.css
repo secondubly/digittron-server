@@ -1,0 +1,4 @@
+/** FF*/
+input[type="range"]::-moz-range-progress {
+  border-radius: 9999px;
+}

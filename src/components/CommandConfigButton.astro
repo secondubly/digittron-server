@@ -96,7 +96,21 @@ type="button" class="
     value.textContent = `${input.value} seconds`;
     input.addEventListener("input", (event) => {
         const target = event.target as HTMLInputElement
-        value.textContent = `${target.value} seconds`;
+        value.textContent = parseInt(target.value) > 59 ? convertToMinutesAndSeconds(parseInt(target.value)) 
+            : `${target.value} seconds`;
     });
+
+    function convertToMinutesAndSeconds(time: number): string {
+        const minutes = Math.floor(time / 60)
+        const seconds = time - minutes * 60
+
+        const secondsStr = makeHumanReadable(seconds, 'second')
+        const minutesStr = makeHumanReadable(minutes, 'minute')
+        return `${minutesStr}${secondsStr}`.replace(/,\s*$/, '')
+    }
+
+    function makeHumanReadable(num: number, singular: string) {
+        return num > 0 ? num + (num === 1 ? ` ${singular}, ` : ` ${singular}s, `) : '';
+    }
 
 </script>

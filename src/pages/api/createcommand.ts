@@ -1,12 +1,15 @@
 import type { APIRoute } from "astro"
 import * as Prisma from "@secondubly/digittron-db"
 import { $Enums } from '@prisma/client'
+
 export const POST: APIRoute = async({ request, redirect }) => {
     const data = await request.formData()
 
     const command = data.get("command")!.toString()
     const response = data.get("message")!.toString()
     const permLevel = data.get("permission-level")!.toString() as $Enums.PermissionLevel
+    const cooldown =  parseInt(data.get('cooldown-timer')?.toString() ?? '5')
+
     let alias = data.get("alias")
     let aliasArray: string[] = []
 
@@ -29,7 +32,8 @@ export const POST: APIRoute = async({ request, redirect }) => {
         data: {
             name: command,
             aliases: aliasArray,
-            response: response
+            response: response,
+            cooldown: cooldown
         }
     })
 

@@ -32,6 +32,12 @@ import UserLevelSelector from "./UserLevelSelector.astro";
                         <UserLevelSelector required/>
                     </div>
                     <div class="col-span-2">
+                        <label for="cooldown-timer" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cooldown</label>
+                        <input id="add-cooldown-timer" name="cooldown-timer" type="range" min="5" max="300" value="5" step="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-800
+                        [&::-moz-range-progress]:h-2 mb-1.5" required>
+                        <output id="add-cooldown-val" class="dark:text-white text-gray-900 pt-4 text-sm"></output>
+                    </div>
+                    <div class="col-span-2">
                         <label for="alias" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alias</label>
                         <input type="text" name="alias" id="alias" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="!sr, !so">
                         <p id="helper-alias-text" class="my-2 text-xs font-normal text-gray-500 dark:text-gray-400">If you would like to have aliases for this command, please list them here separated by commas or spaces.</p>
@@ -48,3 +54,23 @@ import UserLevelSelector from "./UserLevelSelector.astro";
         </div>
     </div>
 </div> 
+
+<script>
+    import { secondsToMinSecs } from '../resources/utils'
+    const sliderEl = document.querySelector("#add-cooldown-timer") as HTMLInputElement
+    if (!sliderEl) {
+        throw new Error('Could not find \"#add-cooldown-timer\" slider.')
+    }
+
+    const cooldownOutput = document.querySelector("#add-cooldown-val") as HTMLElement
+    if (!cooldownOutput) {
+        throw new Error('Could not find \"#add-cooldown-timer\" output.')
+    }
+
+    cooldownOutput.textContent = secondsToMinSecs(parseInt(sliderEl.value))
+    
+    sliderEl.addEventListener("input", (event) => {
+      const tempSliderValue = (event.currentTarget as HTMLInputElement)?.value
+      cooldownOutput.textContent = secondsToMinSecs(parseInt(tempSliderValue))
+    })
+</script>
