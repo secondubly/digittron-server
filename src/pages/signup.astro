@@ -1,9 +1,10 @@
 ---
 // src/pages/signup.astro
 import { auth } from "../lib/lucia";
-import { Prisma } from "@secondubly/digittron-db";
+import { createContext, Prisma } from "@secondubly/digittron-db";
 import IndexLayout from "../app/IndexLayout.astro";
 let errorMessage: string | null = null;
+const prisma = await createContext()
 
 // check for form submissions
 if (Astro.request.method === "POST") {
@@ -48,10 +49,15 @@ if (Astro.request.method === "POST") {
 			} else {
 				errorMessage = "An unknown error occurred";
 			}
-			document.getElementById('error-msg')?.classList.add(':invalid')
 		}
 	} else {
-		errorMessage = "Invalid input";
+		if (!validUsername && !validPassword) {
+			errorMessage = 'Invalid input'
+		} else if(!validUsername) {
+			errorMessage = 'Invalid username.'
+		} else {
+			errorMessage = 'Invalid password.'
+		}
 	}
 }
 
@@ -59,7 +65,7 @@ if (Astro.request.method === "POST") {
 const session = await Astro.locals.auth.validate();
 if (session) return Astro.redirect("/dashboard", 302); // redirect to profile page
 ---
-<IndexLayout>
+<IndexLayout data-error={errorMessage}>
 	<main class="px-6 bg-gray-50 dark: dark:bg-gray-900 w-full h-full min-h-screen pt-16">
 		<h1 class="max-w-sm mx-auto text-center mb-10 capitalize b-4 text-3xl font-extrabold text-gray-900 dark:text-white md:text-5xl lg:text-6xl">Sign up</h1>
 		<form method="post" class="max-w-sm mx-auto">
@@ -70,7 +76,21 @@ if (session) return Astro.redirect("/dashboard", 302); // redirect to profile pa
 				  <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z"/>
 				</svg>
 			  </span>
-			  <input type="text" id="username" name="username" class="rounded-none rounded-e-lg bg-gray-50 border border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Username">
+			  <input type="text" id="username" name="username" 
+			  class="peer rounded-none rounded-e-lg bg-gray-50 border 
+			  border-gray-300 text-gray-900 focus:ring-blue-500 
+			  focus:border-blue-500 block flex-1 min-w-0 w-full text-sm p-2.5  
+			  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
+			  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500
+			  invalid:bg-red-50 invalid:border invalid:border-red-500 
+				invalid:text-red-900 invalid:placeholder-red-700 
+				dark:invalid:bg-red-100 dark:invalid:border-red-400
+				focus:invalid:ring-red-500 focus:invalid:border-red-500" 
+			  placeholder="Username"
+			  minlength="4"
+			  maxlength="31"
+			  required />
+			  <p id="error-msg" class="inline-flex mt-2 invisible peer-invalid:visible text-sm text-red-600 dark:text-red-500"><span class="font-medium">{errorMessage}</span></p>
 			</div>
 			<label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
 			<div class="flex mb-5">
@@ -92,13 +112,24 @@ if (session) return Astro.redirect("/dashboard", 302); // redirect to profile pa
 				invalid:text-red-900 invalid:placeholder-red-700 
 				dark:invalid:bg-red-100 dark:invalid:border-red-400
 				focus:invalid:ring-red-500 focus:invalid:border-red-500" 
-				placeholder="Password" />
+				placeholder="Password" 
+				required
+				minlength="6"
+				maxlength="255"/>
 				<p id="error-msg" class="inline-flex mt-2 invisible peer-invalid:visible text-sm text-red-600 dark:text-red-500"><span class="font-medium">{errorMessage}</span></p>
 			</div>
-			<button type="submit" class="text-white bg-twitch-purple hover:bg-purple-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">Sign Up</button>
+			<button type="submit" id="submit"
+			class="text-white bg-twitch-purple hover:bg-purple-600 
+			focus:ring-4 focus:outline-none focus:ring-blue-300 
+			font-medium rounded-lg text-sm w-full sm:w-auto 
+			px-5 py-2.5 text-center">Sign Up</button>
 			<br />
 			<br />
 			<a href="/login" class="inline mt-5 text-twitch-purple-dark dark:text-twitch-purple hover:underline">Sign in</a>
 		</form>
 	</main>
 </IndexLayout>
+
+<script>
+	
+</script>

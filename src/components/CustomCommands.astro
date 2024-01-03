@@ -1,6 +1,7 @@
 ---
 import AddCommandForm from "./AddCommandForm.astro"
 import EditCommandForm from './EditCommandForm.astro'
+import DeleteCommandButton from './DeleteCommandButton.astro'
 import * as Prisma from "@secondubly/digittron-db"
 import { toTitleCase } from '../resources/utils'
 
@@ -114,6 +115,7 @@ const commands = result.map((command) => {
                         </td>
                         <td class="px-6 py-4">
                             <EditCommandForm command={command} />
+                            <DeleteCommandButton command={command} />
                         </td>
                     </tr>
                 ))}
