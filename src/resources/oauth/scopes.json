@@ -122,5 +122,15 @@
             "desc": "Read the followers of a broadcaster.",
             "tooltip": "Used to get the followers of the channel."
         }
+    },
+    "spotify": {
+        "user-modify-playback-state": {
+            "desc": "Write access to a user’s playback state",
+            "tooltip": "Control playback on your Spotify clients and Spotify Connect devices"
+        },
+        "user-read-currently-playing": {
+            "desc": "Read access to a user’s currently playing content.",
+            "tooltip": "Read your currently playing content."
+        }
     }
 }

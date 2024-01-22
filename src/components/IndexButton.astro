@@ -86,4 +86,9 @@ const { title } = Astro.props;
     dashboardButton?.addEventListener('click', () => {
         location.href = '/login'
     });
+
+    const setupButton = document.getElementById('bot-setup-btn')
+    setupButton?.addEventListener('click', () => {
+        location.href = '/setup'
+    });
 </script>

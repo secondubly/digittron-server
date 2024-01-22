@@ -1,13 +1,22 @@
 ---
 import crypto from 'crypto'
 const { state = crypto.randomBytes(32).toString('hex') } = Astro.props
+Astro.cookies.set('twitch-state', state)
 ---
 <twitch-oauth-button data-state={state}>
-    <button>Twitch Broadcaster Auth</button>
+    <button type="button" class="text-white bg-twitch-purple dark:bg-twitch-purple-dark 
+    focus:ring-4 focus:outline-none focus:ring-blue-300 
+    font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center me-2 
+    dark:focus:ring-blue-800">
+        <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path class="fill-white" d="M11.64 5.93h1.43v4.28h-1.43m3.93-4.28H17v4.28h-1.43M7 2L3.43 5.57v12.86h4.28V22l3.58-3.57h2.85L20.57 12V2m-1.43 9.29l-2.85 2.85h-2.86l-2.5 2.5v-2.5H7.71V3.43h11.43Z"/>
+        </svg>
+        Connect with Twitch
+    </button>
 </twitch-oauth-button>
 
 <script>
-    import scopes from '../resources/oauth/scopes.json'
+    import config from '../resources/oauth/scopes.json'
     let twitchBaseUri = 'https://id.twitch.tv/oauth2/authorize'
     class TwitchButton extends HTMLElement { 
         constructor() { 
@@ -20,17 +29,11 @@ const { state = crypto.randomBytes(32).toString('hex') } = Astro.props
         }
 
         button.addEventListener('click', () => {
-            window.sessionStorage.setItem('state', state)
-            const botScopes = Object.keys(scopes.bot).join('+')
+            const scopes = Object.keys(config.broadcaster).join(' ')
             const CLIENT_ID = import.meta.env.PUBLIC_TWITCH_CLIENT_ID
-            const redirect_uri = `${window.location.origin}`
-            
-            const uri = `${twitchBaseUri}?response_type=code`
-                + `&client_id=${CLIENT_ID}`
-                + `&redirect_uri=${redirect_uri}`
-                + '&force_verify=true'
-                + `&scopes=${botScopes}`
-                + `&state=${state}`
+            const redirect_uri = `${window.location.origin}${window.location.pathname}/`
+            const params = new URLSearchParams({ response_type: 'code', client_id: CLIENT_ID, redirect_uri: redirect_uri, scope: scopes, force_verify: 'true', state: state})
+            const uri = `${twitchBaseUri}?${params}`
             window.location.href=uri
         }); 
         } 

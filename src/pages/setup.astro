@@ -1,0 +1,25 @@
+---
+import IndexLayout from '../app/IndexLayout.astro';
+import TwitchButton from '../components/TwitchButton.astro';
+import SpotifyButton from '../components/SpotifyButton.astro'
+---
+<IndexLayout>
+	<main class="px-6 bg-gray-50 dark: dark:bg-gray-900 w-full h-full min-h-screen pt-16">
+        <h1 class="text-gray-900 dark:text-white text-4xl font-extrabold">Digittron Twitch Setup</h1>
+        <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700">
+        <p class="mb-6 text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">
+            To allow Digittron access to your channel, you must click the button below to create an Oauth token.
+            <br />
+            This token will be automatically refreshed when needed. To revoke Digittron's access to your account,
+            you can do so via the <a href="https://www.twitch.tv/settings/connections" target="_blank">Connections</a> page on Twitch.
+        </p>
+        <TwitchButton />
+
+        <p class="my-6 text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">
+            If you plan on using the song request feature, you must allow Digittron access to your Spotify account.
+            <br />
+            This access will be automatically refreshed when needed.
+        </p>
+        <SpotifyButton />
+	</main>
+</IndexLayout>
