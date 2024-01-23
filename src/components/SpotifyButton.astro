@@ -1,7 +1,13 @@
 ---
 import crypto from 'crypto'
 const { state = crypto.randomBytes(32).toString('hex') } = Astro.props
-Astro.cookies.set('spotify-state', state)
+
+Astro.cookies.set('spotify_oauth_state', state, {
+    httpOnly: true,
+    secure: !import.meta.env.DEV,
+    path: "/",
+    maxAge: 60 * 60 // 1 hour
+})
 ---
 <spotify-oauth-button data-state={state}>
     <button type="button" class="text-white bg-[#1DB954] 

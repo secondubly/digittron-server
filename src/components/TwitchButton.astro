@@ -1,7 +1,12 @@
 ---
 import crypto from 'crypto'
 const { state = crypto.randomBytes(32).toString('hex') } = Astro.props
-Astro.cookies.set('twitch-state', state)
+Astro.cookies.set('twitch_oauth_state', state, {
+    httpOnly: true,
+    secure: !import.meta.env.DEV,
+    path: "/",
+    maxAge: 60 * 60 // 1 hour
+})
 ---
 <twitch-oauth-button data-state={state}>
     <button type="button" class="text-white bg-twitch-purple dark:bg-twitch-purple-dark 
