@@ -1,13 +1,28 @@
 import type { APIRoute } from 'astro'
 import { redis } from '../../middleware'
 
+type OauthResult = {
+        stateType: string,
+        success: boolean,
+        error: string | null
+}
+
 export const GET: APIRoute = async (context) => {
     const storedState = context.cookies.get('spotify_oauth_state')?.value
     const state = context.url.searchParams.get('state')
     const code = context.url.searchParams.get('code')
-
-    console.log("State (Callback Cookie): ", storedState)
-    if (!storedState || !state || storedState !== state || !code) {
+    const error = context.url.searchParams.get('error')
+    if (error) {
+        // user probably denied request
+        context.cookies.set('oauth_result', jsonifyOauthCookie('spotify', false, error), {
+            httpOnly: false,
+            secure: !import.meta.env.DEV,
+            path: "/",
+            maxAge: 60 * 60 // 1 hour
+        })
+        return context.redirect('/setup', 302)
+    } else if (!storedState || !state || storedState !== state || !code) {
+        // invalid payload
         return new Response(null, {
             status: 400
         })
@@ -31,17 +46,14 @@ export const GET: APIRoute = async (context) => {
         })
     
         if (response.ok) {
-            const jsonResponse = await response.json()
-            const result = JSON.stringify({
-                stateType: 'spotify',
-                success: 'true'
-            })
-            context.cookies.set('oauth_result', result, {
+            context.cookies.set('oauth_result', jsonifyOauthCookie('spotify', true, error), {
                 httpOnly: false,
                 secure: !import.meta.env.DEV,
                 path: "/",
                 maxAge: 60 * 60 // 1 hour
             })
+
+            const jsonResponse = await response.json()
             redis.set('spotify_access_token', jsonResponse.access_token)
             redis.set('spotify_refresh_token', jsonResponse.refresh_token)
         } else {
@@ -61,4 +73,13 @@ export const GET: APIRoute = async (context) => {
         }
 
     }
+}
+
+function jsonifyOauthCookie(type: string, success: boolean, error: string| null): string {
+    const oauthResult: OauthResult = {
+        stateType: type,
+        success: success,
+        error: error
+    }
+    return JSON.stringify(oauthResult)
 }
