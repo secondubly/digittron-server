@@ -14,7 +14,7 @@ let authSource = null
 
 if (authCookie) {
     const authSourceJSON: OauthResult = JSON.parse(authCookie)
-    authSource = authSourceJSON.stateType
+    authSource = <T extends string>(s: T) => (authSourceJSON.stateType[0].toUpperCase() + authSourceJSON.stateType.slice(1)) as Capitalize<typeof s>
 }
 ---
 <IndexLayout>
