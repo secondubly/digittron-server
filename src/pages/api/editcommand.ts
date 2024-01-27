@@ -30,31 +30,35 @@ export const POST: APIRoute = async({ request, redirect }) => {
     }
 
     const cooldown = parseInt(cooldownData)
-
     const oldCommandName = result.name
 
-    const updateCommand = prisma.commands.update({
-        where: {
-            name: oldCommandName
-        },
-        data: {
-            name: command,
-            response: response || undefined,
-            cooldown: cooldown
-        }
-    })
+    try {
+        const res = await prisma.commands.update({
+            where: {
+                name: oldCommandName,
+            },
+            data: {
+                response: response || undefined,
+                cooldown: cooldown,
+                command_permissions: {
+                    update: {
+                        where: {
+                            name: oldCommandName,
+                        },
+                        data: {
+                            name: command,
+                            level: permLevel
+                        },
+                    },
+                },
+            },
+            include: {
+                command_permissions: true,
+            },
+        })
+    } catch (e) {
+        
+    }
 
-    const updateCommandPermissions = prisma.commandPermission.update({
-        where: {
-            name: oldCommandName
-        },
-        data: {
-            name: command,
-            level: permLevel
-        }
-    })
-
-    // REVIEW: is there a cleaner way to do this?
-    await prisma.$transaction([updateCommand, updateCommandPermissions])
-    return redirect('commands/custom', 307)
+    return redirect('../commands/custom', 307)
 }

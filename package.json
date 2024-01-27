@@ -21,15 +21,20 @@
   },
   "homepage": "https://github.com/secondubly/digittron-server#readme",
   "dependencies": {
-    "@astrojs/node": "^6.1.0",
+    "@astrojs/node": "^8.1.0",
     "@astrojs/tailwind": "^5.0.2",
+    "@fastify/middie": "^8.3.0",
+    "@fastify/static": "^6.12.0",
     "@lucia-auth/adapter-prisma": "^3.0.2",
     "@secondubly/digittron-db": "^6.0.1",
     "astro": "^4.0.7",
     "dotenv": "^16.3.2",
+    "fastify": "^4.25.2",
+    "fastify-socket.io": "^5.0.0",
     "flowbite": "^2.2.1",
     "lucia": "^2.7.4",
     "redis": "^4.6.12",
+    "socket.io": "^4.7.4",
     "tailwindcss": "^3.3.6"
   },
   "devDependencies": {

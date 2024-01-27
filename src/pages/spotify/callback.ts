@@ -1,33 +1,18 @@
 import type { APIRoute } from 'astro'
 import { redis } from '../../middleware'
-
-type OauthResult = {
-        stateType: string,
-        success: boolean,
-        error: string | null
-}
+import { jsonifyOauthCookie, verifyOauth } from '../api/utils'
 
 export const GET: APIRoute = async (context) => {
     const storedState = context.cookies.get('spotify_oauth_state')?.value
     const state = context.url.searchParams.get('state')
     const code = context.url.searchParams.get('code')
     const error = context.url.searchParams.get('error')
-    if (error) {
-        // user probably denied request
-        context.cookies.set('oauth_result', jsonifyOauthCookie('spotify', false, error), {
-            httpOnly: false,
-            secure: !import.meta.env.DEV,
-            path: "/",
-            maxAge: 60 * 60 // 1 hour
-        })
-        return context.redirect('/setup', 302)
-    } else if (!storedState || !state || storedState !== state || !code) {
-        // invalid payload
-        return new Response(null, {
-            status: 400
-        })
+
+    const response = await verifyOauth(context, 'spotify', state, code, error, storedState)
+    if (response) {
+        return response
     }
-    
+
     try {
         let url = 'https://accounts.spotify.com/api/token'
         const headers = new Headers()
@@ -40,7 +25,7 @@ export const GET: APIRoute = async (context) => {
             headers: headers,
             body: new URLSearchParams({
                 'grant_type': 'authorization_code',
-                'code': code,
+                'code': code!,
                 'redirect_uri': redirect_uri
             })
         })
@@ -73,13 +58,4 @@ export const GET: APIRoute = async (context) => {
         }
 
     }
-}
-
-function jsonifyOauthCookie(type: string, success: boolean, error: string| null): string {
-    const oauthResult: OauthResult = {
-        stateType: type,
-        success: success,
-        error: error
-    }
-    return JSON.stringify(oauthResult)
 }

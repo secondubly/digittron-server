@@ -38,6 +38,7 @@ Astro.cookies.set('spotify_oauth_state', state, {
             const scopes = Object.keys(config.spotify).join(' ')
             const CLIENT_ID = import.meta.env.PUBLIC_SPOTIFY_CLIENT_ID
             const redirect_uri = `${window.location.origin}/spotify/callback`
+            console.debug(redirect_uri)
             const params = new URLSearchParams({ response_type: 'code', client_id: CLIENT_ID, scope: scopes, show_dialog: 'true', state: state})
 
             const uri = `${spotifyBaseUri}?${params}&redirect_uri=${redirect_uri}`

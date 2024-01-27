@@ -1,23 +1,21 @@
-import type { APIRoute } from 'astro'
+import type { APIContext, APIRoute } from 'astro'
 import { redis } from '../../middleware'
+import { jsonifyOauthCookie, verifyOauth } from '../api/utils'
 
-export const get: APIRoute = async (context) => {
+export const GET: APIRoute = async (context) => {
     const storedState = context.cookies.get('twitch_oauth_state')?.value
     const state = context.url.searchParams.get('state')
     const code = context.url.searchParams.get('code')
+    const error = context.url.searchParams.get('error')
 
-    if (!storedState || !state || storedState !== state || !code) {
-        return new Response(null, {
-            status: 400
-        })
+    const response = await verifyOauth(context, 'spotify', state, code, error, storedState)
+    if (response) {
+        return response
     }
 
-    const redirect_uri = context.url.origin + '/twitch/callback'
     try {
-        const { token: auth, refresh } = await getTwitchAuthToken(redirect_uri, code)
-        await redis.set('twitch_access_token', auth)
-        await redis.set('twitch_refresh_token', refresh)
-        context.locals.setup = { stateType: 'twitch', success: true }
+        const redirect_uri = context.url.origin + '/twitch/callback'
+        await getTwitchAuthToken(context, redirect_uri, code!, error)
         return context.redirect('/setup', 302)
     } catch (e) {
         if (e instanceof Error) {
@@ -27,14 +25,13 @@ export const get: APIRoute = async (context) => {
             })
         } else {
             // Some other error probably
-            context.locals.setup = { stateType: 'twitch', success: false }
             return context.redirect('/setup', 302)
         }
 
     }
 }
 
-async function getTwitchAuthToken(redirect: string, code: string): Promise<{token: string, refresh: string}> {
+async function getTwitchAuthToken(context: APIContext, redirect: string, code: string, error: string | null): Promise<void> {
 	let url = 'https://id.twitch.tv/oauth2/token'
 	const headers = new Headers()
 	headers.set('Content-Type', 'application/x-www-form-urlencoded')
@@ -52,10 +49,16 @@ async function getTwitchAuthToken(redirect: string, code: string): Promise<{toke
 	})
 
 	if (response.ok) {
+        context.cookies.set('oauth_result', jsonifyOauthCookie('twitch', true, error), {
+            httpOnly: false,
+            secure: !import.meta.env.DEV,
+            path: "/",
+            maxAge: 60 * 60 // 1 hour
+        })
+
 		const jsonResponse = await response.json()
-		redis.set('spotify_access_token', jsonResponse.access_token)
-		redis.set('spotify_refresh_token', jsonResponse.refresh_token)
-        return { token: jsonResponse.access_token, refresh: jsonResponse.refresh_token }
+		redis.set('twitch_access_token', jsonResponse.access_token)
+		redis.set('twitch_refresh_token', jsonResponse.refresh_token)
 	} else {
         throw new Error('Invalid response received.', { cause: await response.json() })
 	}

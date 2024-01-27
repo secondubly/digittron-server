@@ -1,8 +1,60 @@
 ---
-import LayoutSidebar from "../app/LayoutSidebar.astro";
+import LayoutSidebar from "../app/LayoutSidebar.astro"
+import { redis } from "../middleware"
+
 const session = await Astro.locals.auth.validate();
 if (!session) return Astro.redirect("/login", 302);
+
+console.debug(Astro.url)
+let iframe_url: string | null = null
+// get twitch account name
+const twitch_token = await redis.get('twitch_access_token')
+let username = await redis.get('twitch_username')
+if (!twitch_token) {
+    // TODO: show an error message but still load the page
+} else if (!username) {
+    const headers = new Headers()
+    headers.append('Authorization', `Bearer ${twitch_token}`)
+    headers.append('Client-Id', import.meta.env.PUBLIC_TWITCH_CLIENT_ID)
+    try {
+        const result = await fetch('https://api.twitch.tv/helix/users', {
+            method: 'GET',
+            headers
+        })
+
+        if (result.ok) {
+            const response = await result.json()
+            if (response.data.length === 0) {
+                // didn't get any data
+            } else if (response.data[0].display_name) {
+                    username = response.data[0].display_name
+                    redis.set('twitch_username', username!)
+                    iframe_url = `https://www.twitch.tv/embed/${username}/chat?darkpopout&parent=${Astro.url.hostname}`
+            }
+        } else {
+
+        }
+    } catch (e) {
+
+    }
+} else {
+    iframe_url = `https://www.twitch.tv/embed/${username}/chat?darkpopout&parent=${Astro.url.hostname}`
+}
 ---
 <LayoutSidebar>
-    
+    <script is:inline>
+        if (
+            localStorage.getItem('color-theme') === 'dark' ||
+            (!('color-theme' in localStorage) &&
+                window.matchMedia('(prefers-color-scheme: dark)').matches)
+        ) {
+            iframe_url += '&darkpopout'
+            console.log(iframe_url)
+        }
+    </script>
+    <iframe src={iframe_url}
+        height="700"
+        width="340"
+        sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals">
+    </iframe>
 </LayoutSidebar>

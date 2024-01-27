@@ -9,6 +9,15 @@
             "name": "Development server",
             "request": "launch",
             "type": "node-terminal"
-        }          
+        },
+        {
+            "name": "Launch Server - Node",
+            "program": "${workspaceFolder}/run-server.mjs",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        }
     ]
 }

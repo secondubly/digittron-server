@@ -14,6 +14,7 @@ let authSource = null
 
 if (authCookie) {
     const authSourceJSON: OauthResult = JSON.parse(authCookie)
+    console.debug(`Auth Source: ${authSourceJSON.stateType}`)
     authSource = <T extends string>(s: T) => (authSourceJSON.stateType[0].toUpperCase() + authSourceJSON.stateType.slice(1)) as Capitalize<typeof s>
 }
 ---
@@ -144,7 +145,6 @@ function deleteCookie( name: string) {
 
 const cookie = getCookie('oauth_result')
 let result: OauthResult = {} as OauthResult
-debugger;
 if (cookie !== undefined && cookie.length > 0) {
     // toggle visibility of toast
     result = JSON.parse(decodeURIComponent(cookie))
@@ -166,7 +166,6 @@ if (result.success) {
     }, 5000)
 } else {
     // handle errors
-    debugger;
     if(result.error && result.error === "access_denied") {
         const toast = document.querySelector<HTMLElement>('#toast-warning') ?? undefined
         const progress = document.querySelector<HTMLElement>('#toast-warning .progress-bar') ?? undefined

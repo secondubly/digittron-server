@@ -36,9 +36,9 @@ Astro.cookies.set('twitch_oauth_state', state, {
         button.addEventListener('click', () => {
             const scopes = Object.keys(config.broadcaster).join(' ')
             const CLIENT_ID = import.meta.env.PUBLIC_TWITCH_CLIENT_ID
-            const redirect_uri = `${window.location.origin}${window.location.pathname}/`
-            const params = new URLSearchParams({ response_type: 'code', client_id: CLIENT_ID, redirect_uri: redirect_uri, scope: scopes, force_verify: 'true', state: state})
-            const uri = `${twitchBaseUri}?${params}`
+            const redirect_uri = `${window.location.origin}/twitch/callback`
+            const params = new URLSearchParams({ response_type: 'code', client_id: CLIENT_ID, scope: scopes, force_verify: 'true', state: state})
+            const uri = `${twitchBaseUri}?${params}&redirect_uri=${redirect_uri}`
             window.location.href=uri
         }); 
         } 
