@@ -34,3 +34,26 @@ export const jsonifyOauthCookie = (type: string, success: boolean, error: string
     }
     return JSON.stringify(oauthResult)
 }
+
+export const refreshOauth = async (refreshToken: string): Promise<string> => {
+    const url = 'https://id.twitch.tv/oauth2/token?'
+        + `client_id=${process.env.PUBLIC_TWITCH_CLIENT_ID}`
+        + `&client_secret=${process.env.TWITCH_CLIENT_SECRET}`
+        + '&grant_type=refresh_token&'
+        + `refresh_token=${encodeURIComponent(refreshToken)}`
+
+    console.debug(url)
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    })
+
+    if (!response.ok) {
+        throw Error('Invalid Response ' + response.statusText)
+    }
+
+    const result = await response.json()
+    return result.access_token
+}

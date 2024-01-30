@@ -1,60 +1,162 @@
 ---
 import LayoutSidebar from "../app/LayoutSidebar.astro"
 import { redis } from "../middleware"
-
+import { refreshOauth } from '../pages/api/utils'
+import type { GetUsersResponse, User, GetChannelInformationResponse, ChannelInformation } from 'ts-twitch-api'
 const session = await Astro.locals.auth.validate();
 if (!session) return Astro.redirect("/login", 302);
 
-console.debug(Astro.url)
 let iframe_url: string | null = null
 // get twitch account name
-const twitch_token = await redis.get('twitch_access_token')
-let username = await redis.get('twitch_username')
-if (!twitch_token) {
+let twitchToken = await redis.get('twitch_access_token')
+if (!twitchToken) {
     // TODO: show an error message but still load the page
-} else if (!username) {
+}
+
+
+let userData: User | null = null
+let username = await redis.get('twitch_username')
+if (!username) {
+    userData = await getUserData()
+    username = userData?.display_name ?? null
+    iframe_url = username ? `https://www.twitch.tv/embed/${username}/chat?parent=${Astro.url.hostname}` : null
+} else {
+    iframe_url = `https://www.twitch.tv/embed/${username}/chat?parent=${Astro.url.hostname}`
+}
+
+let broadcaster_id: string | null = await redis.get('broadcaster_id') ?? null
+if (!broadcaster_id) {
+    if (!userData) {
+        // make an api call to get the user data
+        userData = await getUserData()
+        if (userData) {
+            broadcaster_id = userData.id
+        } else {
+            throw Error('Could not fetch user data')
+        }
+    }
+}
+
+/**
+ * const fetch_retry = (url, options, n) => fetch(url, options).catch(function(error) {
+    if (n === 1) throw error;
+    return fetch_retry(url, options, n - 1);
+});
+
+ */
+
+const streamInfo: ChannelInformation | null = await getStreamInfo(broadcaster_id!)
+const streamTitle = streamInfo?.title
+const gameTitle = streamInfo?.game_name
+
+async function getUserData(username?: string): Promise<User|null>{
     const headers = new Headers()
-    headers.append('Authorization', `Bearer ${twitch_token}`)
+    const url = username ? `https://api.twitch.tv/helix/users?login=${username}` : 'https://api.twitch.tv/helix/users'
+    let e
+
+    headers.append('Authorization', `Bearer ${twitchToken}`)
     headers.append('Client-Id', import.meta.env.PUBLIC_TWITCH_CLIENT_ID)
     try {
-        const result = await fetch('https://api.twitch.tv/helix/users', {
+        const response = await fetch(url, {
             method: 'GET',
             headers
         })
 
-        if (result.ok) {
-            const response = await result.json()
-            if (response.data.length === 0) {
-                // didn't get any data
-            } else if (response.data[0].display_name) {
-                    username = response.data[0].display_name
-                    redis.set('twitch_username', username!)
-                    iframe_url = `https://www.twitch.tv/embed/${username}/chat?darkpopout&parent=${Astro.url.hostname}`
+        if (!response.ok) {
+            // refresh oauth token and try again
+            const refreshToken = await redis.get('twitch_refresh_token') ?? null
+            if (!refreshToken) {
+                throw Error('No refresh token found!')                
             }
-        } else {
 
+            twitchToken = await refreshOauth(refreshToken)
+            redis.set('twitch_access_token', twitchToken)
         }
-    } catch (e) {
-
+        
+        const result = await response.json() as GetUsersResponse
+        if (result.data.length === 0) {
+            return null
+        } else {
+            return result.data[0] as User
+        }
+    } catch(err) {
+        e = err
     }
-} else {
-    iframe_url = `https://www.twitch.tv/embed/${username}/chat?darkpopout&parent=${Astro.url.hostname}`
+    // should never fire
+    throw(e)
 }
+
+async function getStreamInfo(id: string): Promise<ChannelInformation|null> {
+    const headers = new Headers()
+    headers.append('Authorization', `Bearer ${twitchToken}`)
+    headers.append('Client-Id', import.meta.env.PUBLIC_TWITCH_CLIENT_ID)
+    const url = `https://api.twitch.tv/helix/channels?broadcaster_id=${broadcaster_id}`
+    let e
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers
+        })
+
+        if (response.ok) {
+            const streamData = await response.json() as GetChannelInformationResponse
+            if (streamData.data.length === 0) {
+                return null
+            }
+
+            return streamData.data[0]
+        }
+    } catch (err) {
+        e = err
+    }
+
+    throw (e)
+}
+// get twitch stream info
+
 ---
 <LayoutSidebar>
-    <script is:inline>
-        if (
-            localStorage.getItem('color-theme') === 'dark' ||
-            (!('color-theme' in localStorage) &&
-                window.matchMedia('(prefers-color-scheme: dark)').matches)
-        ) {
-            iframe_url += '&darkpopout'
-            console.log(iframe_url)
-        }
-    </script>
-    <iframe src={iframe_url}
-        height="700"
-        width="340"
-        sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals">
-    </iframe>
+    <div id="stats-container" class="flex">
+        <div class="">
+            aaaaaaaaaa
+        </div>
+    </div>
+    <div id="main-container" class="flex flex-row justify-evenly">
+        <div>
+            <iframe id="chat-frame" src={iframe_url}
+            height="700"
+            width="340"
+            sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals">
+            </iframe>
+        </div>
+        <div id="stream-info" class="w-1/4 h-fit dark:bg-stone-900">
+            <h4 class="text-2xl font-bold dark:text-white w-full p-2.5 dark:border-gray-700 border-b-2">Stream Information</h4>
+            <div class="p-2.5">
+                <form>
+                    <label for="title-input"><h2 class="dark:text-white font-semibold">Title</h2></label>
+                    <input type="text" value={streamTitle}>
+                </form>
+            </div>
+        </div>
+    </div> 
 </LayoutSidebar>
+
+<script>
+    const twitchChat = document.querySelector<HTMLIFrameElement>('#chat-frame')
+    if (!twitchChat) {
+        throw Error('Could not find twitch chat iframe')
+    }
+
+    let sourceUrl = twitchChat.src
+
+    if(localStorage.getItem('color-theme') === 'light' && sourceUrl.includes('darkpopout')) {
+        sourceUrl = sourceUrl.replace('darkpopout&', '')
+    } else if (localStorage.getItem('color-theme') === 'dark' && !sourceUrl.includes('darkpopout')) {
+        const position = sourceUrl.indexOf('/chat?') + 6
+        twitchChat.src = insertString(sourceUrl, 'darkpopout&', position)
+    }
+
+    function insertString(original: string, insert: string, position: number) {
+        return original.substring(0, position) + insert + original.substring(position)
+    }
+</script>
