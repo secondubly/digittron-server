@@ -1,8 +1,10 @@
 ---
+import 'autocompleter/autocomplete.css'
 import LayoutSidebar from "../app/LayoutSidebar.astro"
 import { redis } from "../middleware"
-import { refreshOauth } from '../pages/api/utils'
-import type { GetUsersResponse, User, GetChannelInformationResponse, ChannelInformation } from 'ts-twitch-api'
+import type { User, ChannelInformation } from 'ts-twitch-api'
+import { getStreamInfo, getUserData } from './api/utils'
+
 const session = await Astro.locals.auth.validate();
 if (!session) return Astro.redirect("/login", 302);
 
@@ -13,13 +15,16 @@ if (!twitchToken) {
     // TODO: show an error message but still load the page
 }
 
-
 let userData: User | null = null
 let username = await redis.get('twitch_username')
 if (!username) {
-    userData = await getUserData()
+    userData = await getUserData(twitchToken!)
     username = userData?.display_name ?? null
     iframe_url = username ? `https://www.twitch.tv/embed/${username}/chat?parent=${Astro.url.hostname}` : null
+    if (username) {
+        // only set username if it's not null
+        redis.set('twitch_username', username)
+    }
 } else {
     iframe_url = `https://www.twitch.tv/embed/${username}/chat?parent=${Astro.url.hostname}`
 }
@@ -27,8 +32,8 @@ if (!username) {
 let broadcaster_id: string | null = await redis.get('broadcaster_id') ?? null
 if (!broadcaster_id) {
     if (!userData) {
-        // make an api call to get the user data
-        userData = await getUserData()
+        // make an api call to get user data if we don't have it already
+        userData = await getUserData(twitchToken!)
         if (userData) {
             broadcaster_id = userData.id
         } else {
@@ -37,84 +42,24 @@ if (!broadcaster_id) {
     }
 }
 
-/**
- * const fetch_retry = (url, options, n) => fetch(url, options).catch(function(error) {
-    if (n === 1) throw error;
-    return fetch_retry(url, options, n - 1);
-});
-
- */
-
-const streamInfo: ChannelInformation | null = await getStreamInfo(broadcaster_id!)
+// get twitch stream info
+const streamInfo: ChannelInformation | null = await getStreamInfo(twitchToken!, broadcaster_id!)
 const streamTitle = streamInfo?.title
 const gameTitle = streamInfo?.game_name
-
-async function getUserData(username?: string): Promise<User|null>{
-    const headers = new Headers()
-    const url = username ? `https://api.twitch.tv/helix/users?login=${username}` : 'https://api.twitch.tv/helix/users'
-    let e
-
-    headers.append('Authorization', `Bearer ${twitchToken}`)
-    headers.append('Client-Id', import.meta.env.PUBLIC_TWITCH_CLIENT_ID)
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers
-        })
-
-        if (!response.ok) {
-            // refresh oauth token and try again
-            const refreshToken = await redis.get('twitch_refresh_token') ?? null
-            if (!refreshToken) {
-                throw Error('No refresh token found!')                
-            }
-
-            twitchToken = await refreshOauth(refreshToken)
-            redis.set('twitch_access_token', twitchToken)
-        }
-        
-        const result = await response.json() as GetUsersResponse
-        if (result.data.length === 0) {
-            return null
-        } else {
-            return result.data[0] as User
-        }
-    } catch(err) {
-        e = err
-    }
-    // should never fire
-    throw(e)
-}
-
-async function getStreamInfo(id: string): Promise<ChannelInformation|null> {
-    const headers = new Headers()
-    headers.append('Authorization', `Bearer ${twitchToken}`)
-    headers.append('Client-Id', import.meta.env.PUBLIC_TWITCH_CLIENT_ID)
-    const url = `https://api.twitch.tv/helix/channels?broadcaster_id=${broadcaster_id}`
-    let e
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers
-        })
-
-        if (response.ok) {
-            const streamData = await response.json() as GetChannelInformationResponse
-            if (streamData.data.length === 0) {
-                return null
-            }
-
-            return streamData.data[0]
-        }
-    } catch (err) {
-        e = err
-    }
-
-    throw (e)
-}
-// get twitch stream info
-
 ---
+<style is:global>
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+
+    .autocomplete {
+        max-height: 10rem!important;
+        overflow-y: scroll;
+    }
+    .autocomplete > div {
+        padding: 0.5rem;   
+    }
+</style>
 <LayoutSidebar>
     <div id="stats-container" class="flex">
         <div class="">
@@ -131,17 +76,42 @@ async function getStreamInfo(id: string): Promise<ChannelInformation|null> {
         </div>
         <div id="stream-info" class="w-1/4 h-fit dark:bg-stone-900">
             <h4 class="text-2xl font-bold dark:text-white w-full p-2.5 dark:border-gray-700 border-b-2">Stream Information</h4>
-            <div class="p-2.5">
-                <form>
-                    <label for="title-input"><h2 class="dark:text-white font-semibold">Title</h2></label>
-                    <input type="text" value={streamTitle}>
+            <div>
+                <form class="">
+                    <div id="stream-info-body" class="p-2">
+                        <label for="title"><h2 class="dark:text-white font-semibold mb-2">Title</h2></label>
+                        <input type="text" id="username-input" name="title" class="rounded-lg bg-gray-50 border 
+                        border-gray-300 text-gray-900 focus:ring-blue-500 
+                        focus:border-blue-500 block flex-1 min-w-0 w-full text-sm 
+                        p-2.5  dark:bg-gray-700 dark:border-gray-600 
+                        dark:placeholder-gray-400 dark:text-white 
+                        dark:focus:ring-blue-500 dark:focus:border-blue-500" value={streamTitle}>
+                        <br />
+                        <label for="game"><h2 class="dark:text-white font-semibold mb-2">Game</h2></label>
+                        <input type="text" id="game-input" name="game" class="rounded-lg bg-gray-50 border 
+                        border-gray-300 text-gray-900 focus:ring-blue-500 
+                        focus:border-blue-500 block flex-1 min-w-0 w-full text-sm 
+                        p-2.5  dark:bg-gray-700 dark:border-gray-600 
+                        dark:placeholder-gray-400 dark:text-white 
+                        dark:focus:ring-blue-500 dark:focus:border-blue-500
+                        mb-2" value={gameTitle}>
+                    </div>
+                    <div id="stream-info-footer" class="border-t-[1px] p-2 border-stone-500 flex flex-row-reverse">
+                        <button type="submit" class="text-white bg-twitch-purple hover:bg-purple-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-1 text-center">
+                            Update
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
     </div> 
 </LayoutSidebar>
-
 <script>
+    import autocomplete, { type AutocompleteItem } from'autocompleter'
+    import type { Category, SearchCategoriesResponse } from 'ts-twitch-api'
+
+    type GameItem = String & AutocompleteItem
+
     const twitchChat = document.querySelector<HTMLIFrameElement>('#chat-frame')
     if (!twitchChat) {
         throw Error('Could not find twitch chat iframe')
@@ -159,4 +129,34 @@ async function getStreamInfo(id: string): Promise<ChannelInformation|null> {
     function insertString(original: string, insert: string, position: number) {
         return original.substring(0, position) + insert + original.substring(position)
     }
+
+    const input = document.querySelector<HTMLInputElement>('#game-input')
+    if (!input) {
+        throw Error('Could not find #game-input element')
+    }
+    autocomplete<GameItem>({
+        input: input,
+        emptyMsg: 'No games found',
+        minLength: 1,
+        fetch: async (text: string, update: (items: string[]) => void) => {
+            const response = await fetch(`/api/games?query=${text}`)
+            const results = await response.json() as SearchCategoriesResponse
+            const titles = results.data.map((game: Category) => game.name)
+            update(titles)
+        },
+        onSelect: (item: GameItem) => {
+            input.value = item as string
+        },
+        debounceWaitMs: 500,
+        disableAutoSelect: true,
+        className: 'test',
+        render: function(item: GameItem, currentValue: string): HTMLDivElement | undefined {
+            const itemElement = document.createElement('div');
+            itemElement.classList.add('p-0.5')
+            itemElement.classList.add('dark:bg-stone-900')
+            itemElement.classList.add('dark:text-white')
+            itemElement.textContent = item as string;
+            return itemElement;
+        }
+    })
 </script>

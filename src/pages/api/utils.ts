@@ -1,9 +1,26 @@
 import type { APIContext } from "astro"
+import type { Category, ChannelInformation, GetChannelInformationResponse, GetUsersResponse, SearchCategoriesResponse, User } from "ts-twitch-api"
+import { redis } from "../../middleware"
 
 type OauthResult = {
     stateType: string,
     success: boolean,
     error: string | null
+}
+
+const fetchWithRetries = async (url: string, options: RequestInit, retryCount = 0, maxRetries = 3): Promise<Response> => {
+    // split out the maxRetries option from the remaining
+    // options (with a default of 3 retries)
+    try {
+      return await fetch(url, options)
+    } catch (error) {
+      // if the retryCount has not been exceeded, call again
+      if (retryCount < maxRetries) {
+        return fetchWithRetries(url, options, retryCount + 1)
+      }
+      // max retries exceeded
+      throw error
+    }
 }
 
 export const verifyOauth = async (context: APIContext, type: string, state: string | null, code: string | null, error: string | null, storedState?: string): Promise<Response | null> => {
@@ -42,12 +59,11 @@ export const refreshOauth = async (refreshToken: string): Promise<string> => {
         + '&grant_type=refresh_token&'
         + `refresh_token=${encodeURIComponent(refreshToken)}`
 
-    console.debug(url)
-    const response = await fetch(url, {
+    const response = await fetchWithRetries(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
-        }
+        }        
     })
 
     if (!response.ok) {
@@ -56,4 +72,72 @@ export const refreshOauth = async (refreshToken: string): Promise<string> => {
 
     const result = await response.json()
     return result.access_token
+}
+
+export const getStreamInfo = async (authToken: string, broadcasterID: string): Promise<ChannelInformation|null> => {
+    const headers = new Headers()
+    headers.append('Authorization', `Bearer ${authToken}`)
+    headers.append('Client-Id', import.meta.env.PUBLIC_TWITCH_CLIENT_ID)
+    const url = `https://api.twitch.tv/helix/channels?broadcaster_id=${broadcasterID}`
+    const response = await fetchWithRetries(url, {
+            method: 'GET',
+            headers
+        })
+
+    const streamData = await response.json() as GetChannelInformationResponse
+    if (streamData.data.length === 0) {
+        return null
+    }
+
+    return streamData.data[0]
+}
+
+export const getUserData = async (authToken: string, username?: string): Promise<User|null> => {
+    const headers = new Headers()
+    const url = username ? `https://api.twitch.tv/helix/users?login=${username}` : 'https://api.twitch.tv/helix/users'
+    let e
+
+    headers.append('Authorization', `Bearer ${authToken}`)
+    headers.append('Client-Id', import.meta.env.PUBLIC_TWITCH_CLIENT_ID)
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers
+        })
+
+        if (!response.ok) {
+            // refresh oauth token and try again
+            const refreshToken = await redis.get('twitch_refresh_token') ?? null
+            if (!refreshToken) {
+                throw Error('No refresh token found!')                
+            }
+
+            authToken = await refreshOauth(refreshToken)
+            redis.set('twitch_access_token', authToken)
+        }
+        
+        const result = await response.json() as GetUsersResponse
+        if (result.data.length === 0) {
+            return null
+        } else {
+            return result.data[0] as User
+        }
+    } catch(err) {
+        e = err
+    }
+    // should never fire
+    throw(e)
+}
+
+export const getGameSuggestions = async (query: string, first = 20): Promise<Category[]> => {
+    const authToken = await redis.get('twitch_access_token')
+
+    const headers = new Headers()
+    headers.append('Authorization', `Bearer ${authToken}`)
+    headers.append('Client-Id', import.meta.env.PUBLIC_TWITCH_CLIENT_ID)
+    const url = encodeURI(`https://api.twitch.tv/helix/search/categories?query=${query}&first=${first}`)
+    const response = await fetchWithRetries(url, { method: 'GET'})
+    const json = await response.json() as SearchCategoriesResponse
+
+    return json.data
 }
