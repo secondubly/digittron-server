@@ -2,7 +2,7 @@ import { auth } from "../lib/lucia";
 
 import type { APIRoute } from "astro";
 
-export const POST: APIRoute = async (context) => {
+export const POST: APIRoute = async (context): Promise<Response> => {
 	const session = await context.locals.auth.validate()
 	if (!session) {
 		return new Response("Unauthorized", {
