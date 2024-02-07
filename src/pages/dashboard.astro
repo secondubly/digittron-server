@@ -15,11 +15,14 @@ if (!twitchToken) {
     // TODO: show an error message but still load the page
 }
 
-let userData: User | null = null
 let username = await redis.get('twitch_username')
+let userData: User | null = await getUserData(twitchToken!)
+if (!userData) {
+    throw Error('Could not fetch user data')
+}
+
 if (!username) {
-    userData = await getUserData(twitchToken!)
-    username = userData?.display_name ?? null
+    username = userData.display_name ?? null
     iframe_url = username ? `https://www.twitch.tv/embed/${username}/chat?parent=${Astro.url.hostname}` : null
     if (username) {
         // only set username if it's not null
@@ -31,21 +34,17 @@ if (!username) {
 
 let broadcaster_id: string | null = await redis.get('broadcaster_id') ?? null
 if (!broadcaster_id) {
-    if (!userData) {
-        // make an api call to get user data if we don't have it already
-        userData = await getUserData(twitchToken!)
-        if (userData) {
-            broadcaster_id = userData.id
-        } else {
-            throw Error('Could not fetch user data')
-        }
-    }
+    broadcaster_id = userData.id
+    redis.set('broadcaster_id', broadcaster_id).then(() => {
+        console.info('broadcaster id set')
+    })
 }
 
 // get twitch stream info
 const streamInfo: ChannelInformation | null = await getStreamInfo(twitchToken!, broadcaster_id!)
 const streamTitle = streamInfo?.title
 const gameTitle = streamInfo?.game_name
+const gameID = streamInfo?.game_id
 ---
 <style is:global>
     @tailwind base;
@@ -61,9 +60,21 @@ const gameTitle = streamInfo?.game_name
     }
 </style>
 <LayoutSidebar>
-    <div id="stats-container" class="flex">
-        <div class="">
-            aaaaaaaaaa
+    <div id="stats-container" class="flex justify-around">
+        <div id="uptime-container" class="bg-twitch-purple basis-1/4">
+            <h3 class="w-full">1:00</h3>
+            <p>Uptime</p>
+        </div>
+        <div id="subs-container" class="bg-blue-500 basis-1/4">
+            <h3>4</h3>
+            <svg class="" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14z" />
+            </svg>
+            <p>Subscribers</p>
+        </div>
+        <div id="viewers-container" class="bg-green-500 basis-1/4">
+            <h3>5</h3>
+            <p>Viewers</p>
         </div>
     </div>
     <div id="main-container" class="flex flex-row justify-evenly">
@@ -77,7 +88,7 @@ const gameTitle = streamInfo?.game_name
         <div id="stream-info" class="w-1/4 h-fit dark:bg-stone-900">
             <h4 class="text-2xl font-bold dark:text-white w-full p-2.5 dark:border-gray-700 border-b-2">Stream Information</h4>
             <div>
-                <form class="">
+                <form action="/api/stream-info" method="POST" class="">
                     <div id="stream-info-body" class="p-2">
                         <label for="title"><h2 class="dark:text-white font-semibold mb-2">Title</h2></label>
                         <input type="text" id="username-input" name="title" class="rounded-lg bg-gray-50 border 
@@ -85,7 +96,7 @@ const gameTitle = streamInfo?.game_name
                         focus:border-blue-500 block flex-1 min-w-0 w-full text-sm 
                         p-2.5  dark:bg-gray-700 dark:border-gray-600 
                         dark:placeholder-gray-400 dark:text-white 
-                        dark:focus:ring-blue-500 dark:focus:border-blue-500" value={streamTitle}>
+                        dark:focus:ring-blue-500 dark:focus:border-blue-500" value={streamTitle} />
                         <br />
                         <label for="game"><h2 class="dark:text-white font-semibold mb-2">Game</h2></label>
                         <input type="text" id="game-input" name="game" class="rounded-lg bg-gray-50 border 
@@ -94,7 +105,8 @@ const gameTitle = streamInfo?.game_name
                         p-2.5  dark:bg-gray-700 dark:border-gray-600 
                         dark:placeholder-gray-400 dark:text-white 
                         dark:focus:ring-blue-500 dark:focus:border-blue-500
-                        mb-2" value={gameTitle}>
+                        mb-2" value={gameTitle} />
+                        <input id="game-id" type="hidden" name="game-id" value={gameID} />
                     </div>
                     <div id="stream-info-footer" class="border-t-[1px] p-2 border-stone-500 flex flex-row-reverse">
                         <button type="submit" class="text-white bg-twitch-purple hover:bg-purple-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-1 text-center">
@@ -130,12 +142,17 @@ const gameTitle = streamInfo?.game_name
         return original.substring(0, position) + insert + original.substring(position)
     }
 
-    const input = document.querySelector<HTMLInputElement>('#game-input')
-    if (!input) {
+    const gameInput = document.querySelector<HTMLInputElement>('#game-input')
+    const gameID = document.querySelector<HTMLInputElement>("#game-id")
+    if (!gameInput) {
         throw Error('Could not find #game-input element')
     }
+
+    if (!gameID) {
+        throw Error('Could not find #game-id element')
+    }
     autocomplete<GameItem>({
-        input: input,
+        input: gameInput,
         emptyMsg: 'No games found',
         minLength: 1,
         fetch: async (text: string, update: (items: string[]) => void) => {
@@ -145,7 +162,7 @@ const gameTitle = streamInfo?.game_name
             update(titles)
         },
         onSelect: (item: GameItem) => {
-            input.value = item as string
+            gameInput.value = item as string
         },
         debounceWaitMs: 500,
         disableAutoSelect: true,

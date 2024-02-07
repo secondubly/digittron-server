@@ -84,12 +84,21 @@ export const getStreamInfo = async (authToken: string, broadcasterID: string): P
             headers
         })
 
-    const streamData = await response.json() as GetChannelInformationResponse
-    if (streamData.data.length === 0) {
+    const streamData = await response.json()
+    if (streamData.data?.length === 0) {
         return null
+    } else if (streamData.status === 401) {
+        const refreshToken = await redis.get('twitch_refresh_token') ?? null
+        if (!refreshToken) {
+            throw Error('Oauth Token invalid, anmd no refresh token found.')
+        }
+        
+        const updatedToken = await refreshOauth(refreshToken)
+        redis.set('twitch_access_token', updatedToken)
+        return getStreamInfo(updatedToken, broadcasterID)
     }
 
-    return streamData.data[0]
+    return (streamData as GetChannelInformationResponse).data[0]
 }
 
 export const getUserData = async (authToken: string, username?: string): Promise<User|null> => {

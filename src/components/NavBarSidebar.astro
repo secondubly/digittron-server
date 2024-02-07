@@ -1,6 +1,27 @@
 ---
 /* eslint max-lines: 'off' */
 import ColorModeSwitch from './ColorModeSwitch.astro';
+
+import { redis } from "../middleware"
+import { getUserData } from "../pages/api/utils"
+import type { User } from "ts-twitch-api"
+
+let imageString: string | null = await redis.get('twitch_image') ?? null
+let twitchToken = await redis.get('twitch_access_token')
+if (!twitchToken) {
+    // TODO: show an error message but still load the page
+}
+let userData: User | null = await getUserData(twitchToken!)
+if (!userData) {
+	throw Error('Could not fetch user data')
+}
+if (!imageString) {
+    const response = await fetch(userData.profile_image_url)
+    const blob  = await response.arrayBuffer()
+    const contentType = response.headers.get('content-type')
+    imageString = `data:${contentType};base64,${Buffer.from(blob).toString('base64')}`;
+    redis.set('twitch_image', imageString)
+}
 ---
 
 <nav
@@ -63,7 +84,7 @@ import ColorModeSwitch from './ColorModeSwitch.astro';
 							<span class="sr-only">Open user menu</span>
 							<img
 								class="w-8 h-8 rounded-full"
-								src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+								src={imageString}
 								alt="user photo"
 							/>
 						</button>
@@ -106,13 +127,19 @@ import ColorModeSwitch from './ColorModeSwitch.astro';
 									role="menuitem">Earnings</a
 								>
 							</li>
-							<li>
-								<a
-									href="#"
+							<form method="post" action="/logout">
+								<li>
+									<button class="w-full block text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
+									role="menuitem">
+										Sign out
+									</button>
+									<!-- <a
+									href=""
 									class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
 									role="menuitem">Sign out</a
-								>
-							</li>
+									> -->
+								</li>
+							</form>
 						</ul>
 					</div>
 				</div>
