@@ -122,7 +122,7 @@ export const getUserData = async (authToken: string, username?: string): Promise
             }
 
             authToken = await refreshOauth(refreshToken)
-            redis.set('twitch_access_token', authToken)
+            await redis.set('twitch_access_token', authToken)
         }
         
         const result = await response.json() as GetUsersResponse
