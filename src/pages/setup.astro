@@ -129,6 +129,19 @@ if (authCookie) {
 <script>
 import type { OauthResult } from './setup.astro'
 
+const toast = document.querySelector<HTMLElement>('#toast-success') ?? undefined
+const progress = document.querySelector<HTMLElement>('#toast-success .progress-bar') ?? undefined
+if (!toast || !progress) {
+    throw Error('Could not find toast element or child')
+}
+
+toast.classList.add('opacity-100')
+progress.classList.add('w-full')
+setTimeout(() => {
+    toast.classList.remove('opacity-100')
+    progress.classList.remove('w-full')
+}, 5000)
+
 function getCookie(name: string): string | undefined {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
