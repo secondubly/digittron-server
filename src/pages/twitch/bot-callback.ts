@@ -1,11 +1,10 @@
-import type { APIRoute } from 'astro'
-import { redis } from '../../middleware'
-import { jsonifyOauthCookie, verifyOauth } from '../api/utils'
-import { exchangeCode } from '@twurple/auth'
-
+import type { APIRoute } from "astro"
+import { redis } from "../../middleware"
+import { verifyOauth } from "../api/utils"
+import { exchangeCode } from "@twurple/auth"
 
 export const GET: APIRoute = async (context) => {
-    const storedState = context.cookies.get('broadcaster-state')?.value
+    const storedState = context.cookies.get('bot-state')?.value
     const state = context.url.searchParams.get('state')
     const code = context.url.searchParams.get('code')
     const error = context.url.searchParams.get('error')
@@ -16,19 +15,9 @@ export const GET: APIRoute = async (context) => {
     }
 
     try {
-        const redirect_uri = context.url.origin + '/twitch/callback'
-        
+        const redirect_uri = context.url.origin + '/twitch/bot-callback'
         const tokenData = await exchangeCode(process.env.PUBLIC_TWITCH_CLIENT_ID!, process.env.TWITCH_CLIENT_SECRET! , code!, redirect_uri)
-        const jsonifiedToken = JSON.stringify(tokenData)
-        await redis.set('twitch_broadcaster_token', jsonifiedToken)
-
-        context.cookies.set('oauth_result', jsonifyOauthCookie('twitch_broadcaster', true, error), {
-            httpOnly: false,
-            secure: !import.meta.env.DEV,
-            path: "/",
-            maxAge: 60 * 60 // 1 hour
-        })
-        
+        redis.set('twitch_bot_token', JSON.stringify(tokenData))
         return context.redirect('/setup', 302)
     } catch (e) {
         if (e instanceof Error) {

@@ -1,6 +1,7 @@
 import type { APIContext } from "astro"
 import type { Category, ChannelInformation, GetChannelInformationResponse, GetUsersResponse, SearchCategoriesResponse, User } from "ts-twitch-api"
 import { redis } from "../../middleware"
+import type { AccessToken } from "@twurple/auth"
 
 type OauthResult = {
     stateType: string,
@@ -126,6 +127,7 @@ export const getUserData = async (authToken: string, username?: string): Promise
         }
         
         const result = await response.json() as GetUsersResponse
+        console.debug(result)
         if (result.data.length === 0) {
             return null
         } else {
