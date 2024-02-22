@@ -20,7 +20,7 @@ export const GET: APIRoute = async (context) => {
         
         const tokenData = await exchangeCode(process.env.PUBLIC_TWITCH_CLIENT_ID!, process.env.TWITCH_CLIENT_SECRET! , code!, redirect_uri)
         const jsonifiedToken = JSON.stringify(tokenData)
-        await redis.set('twitch_broadcaster_token', jsonifiedToken)
+        process.env.NODE_ENV ? await redis.set('test_broadcaster_token', jsonifiedToken) : await redis.set('twitch_broadcaster_token', jsonifiedToken)
 
         context.cookies.set('oauth_result', jsonifyOauthCookie('twitch_broadcaster', true, error), {
             httpOnly: false,

@@ -1,7 +1,6 @@
 import type { APIContext } from "astro"
 import type { Category, ChannelInformation, GetChannelInformationResponse, GetUsersResponse, SearchCategoriesResponse, User } from "ts-twitch-api"
 import { redis } from "../../middleware"
-import type { AccessToken } from "@twurple/auth"
 
 type OauthResult = {
     stateType: string,

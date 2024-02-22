@@ -39,8 +39,7 @@ export const GET: APIRoute = async (context) => {
             })
 
             const jsonResponse = await response.json()
-            redis.set('spotify_access_token', jsonResponse.access_token)
-            redis.set('spotify_refresh_token', jsonResponse.refresh_token)
+            redis.set('spotify_access_token', JSON.stringify(jsonResponse))
         } else {
             throw new Error('Invalid response received.', { cause: await response.json() })
         }

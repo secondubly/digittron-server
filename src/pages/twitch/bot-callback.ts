@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro"
 import { redis } from "../../middleware"
-import { verifyOauth } from "../api/utils"
+import { getUserData, verifyOauth } from "../api/utils"
 import { exchangeCode } from "@twurple/auth"
 
 export const GET: APIRoute = async (context) => {
@@ -17,7 +17,11 @@ export const GET: APIRoute = async (context) => {
     try {
         const redirect_uri = context.url.origin + '/twitch/bot-callback'
         const tokenData = await exchangeCode(process.env.PUBLIC_TWITCH_CLIENT_ID!, process.env.TWITCH_CLIENT_SECRET! , code!, redirect_uri)
-        redis.set('twitch_bot_token', JSON.stringify(tokenData))
+        await redis.set('twitch_bot_token', JSON.stringify(tokenData))
+        const userData = await getUserData(tokenData.accessToken)
+        if (userData) {
+            await redis.set('twitch_bot_id', userData.id)
+        }
         return context.redirect('/setup', 302)
     } catch (e) {
         if (e instanceof Error) {
