@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
 import { redis } from '../../middleware'
-import { jsonifyOauthCookie, verifyOauth } from '../api/utils'
+import { getUserData, jsonifyOauthCookie, verifyOauth } from '../api/utils'
 import { exchangeCode } from '@twurple/auth'
 
 
@@ -19,8 +19,14 @@ export const GET: APIRoute = async (context) => {
         const redirect_uri = context.url.origin + '/twitch/callback'
         
         const tokenData = await exchangeCode(process.env.PUBLIC_TWITCH_CLIENT_ID!, process.env.TWITCH_CLIENT_SECRET! , code!, redirect_uri)
-        const jsonifiedToken = JSON.stringify(tokenData)
-        process.env.NODE_ENV ? await redis.set('test_broadcaster_token', jsonifiedToken) : await redis.set('twitch_broadcaster_token', jsonifiedToken)
+        
+        // get account id
+        const user = await getUserData(tokenData.accessToken)
+        if (!user) {
+            // TODO: error handling
+            console.error('something went wrong')
+        }
+        await redis.set(user!.id, JSON.stringify(tokenData))
 
         context.cookies.set('oauth_result', jsonifyOauthCookie('twitch_broadcaster', true, error), {
             httpOnly: false,

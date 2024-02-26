@@ -126,7 +126,6 @@ export const getUserData = async (authToken: string, username?: string): Promise
         }
         
         const result = await response.json() as GetUsersResponse
-        console.debug(result)
         if (result.data.length === 0) {
             return null
         } else {
