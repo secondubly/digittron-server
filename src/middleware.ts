@@ -5,6 +5,7 @@ import type { MiddlewareHandler } from "astro"
 import { createClient } from 'redis'
 
 export const redis = await createClient({
+	url: process.env.REDIS_URL,
 	socket: {
 		reconnectStrategy: retries => Math.min(retries * 10, 100)
 	}
