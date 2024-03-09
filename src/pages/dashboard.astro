@@ -4,44 +4,36 @@ import LayoutSidebar from "../app/LayoutSidebar.astro"
 import { redis } from "../middleware"
 import type { User, ChannelInformation } from 'ts-twitch-api'
 import { getStreamInfo, getUserData } from './api/utils'
+import type { AccessToken } from '@twurple/auth'
 
 const session = await Astro.locals.auth.validate();
 if (!session) return Astro.redirect("/login", 302);
 
 let iframe_url: string | null = null
-// get twitch account name
-let twitchToken = await redis.get('twitch_access_token')
-if (!twitchToken) {
-    // TODO: show an error message but still load the page
+// get broadcaster id
+let broadcasterId = await redis.get('twitch_broadcaster_id')
+if (!broadcasterId) {
+    throw new Error("Broadcaster ID not set, user should reauthenticate.")
 }
 
-let username = await redis.get('twitch_username')
-let userData: User | null = await getUserData(twitchToken!)
+let tokenJson = await redis.get(broadcasterId) ?? ''
+if (tokenJson === '') {
+    console.warn("Broadcaster OAuth token not found, user should reauthenticate.")
+    Astro.redirect('/setup')
+    // TODO: add alert message when redirecting
+}
+
+const parsedToken: AccessToken = JSON.parse(tokenJson)
+let userData: User | null = await getUserData(parsedToken, broadcasterId)
 if (!userData) {
     throw Error('Could not fetch user data')
 }
 
-if (!username) {
-    username = userData.display_name ?? null
-    iframe_url = username ? `https://www.twitch.tv/embed/${username}/chat?parent=${Astro.url.hostname}` : null
-    if (username) {
-        // only set username if it's not null
-        redis.set('twitch_username', username)
-    }
-} else {
-    iframe_url = `https://www.twitch.tv/embed/${username}/chat?parent=${Astro.url.hostname}`
-}
-
-let broadcaster_id: string | null = await redis.get('broadcaster_id') ?? null
-if (!broadcaster_id) {
-    broadcaster_id = userData.id
-    redis.set('broadcaster_id', broadcaster_id).then(() => {
-        console.info('broadcaster id set')
-    })
-}
+const username = userData.display_name
+iframe_url = `https://www.twitch.tv/embed/${username}/chat?parent=${Astro.url.hostname}`
 
 // get twitch stream info
-const streamInfo: ChannelInformation | null = await getStreamInfo(twitchToken!, broadcaster_id!)
+const streamInfo: ChannelInformation | null = await getStreamInfo(parsedToken!, broadcasterId)
 const streamTitle = streamInfo?.title
 const gameTitle = streamInfo?.game_name
 const gameID = streamInfo?.game_id

@@ -2,7 +2,6 @@ import type { APIRoute } from "astro"
 import { redis } from "../../middleware"
 import { getUserData, verifyOauth } from "../api/utils"
 import { exchangeCode } from "@twurple/auth"
-import type { GetUsersResponse } from "ts-twitch-api"
 
 export const GET: APIRoute = async (context) => {
     const storedState = context.cookies.get('bot-state')?.value
@@ -26,7 +25,7 @@ export const GET: APIRoute = async (context) => {
                 },
                 body: new URLSearchParams({
                     'client_id': process.env.PUBLIC_TWITCH_CLIENT_ID ?? '',
-                    'client_secret': process.env.CLIENT_SECRET ?? '',
+                    'client_secret': process.env.TWITCH_CLIENT_SECRET ?? '',
                     'grant_type': 'client_credentials'
                 })
             })
@@ -44,10 +43,11 @@ export const GET: APIRoute = async (context) => {
         const user = await getUserData(tokenData.accessToken)
         if (!user) {
             // TODO: error handling
-            console.error('something went wrong')
+            console.warn('Couldn\'t fetch bot account information!')
+        } else {
+            await redis.set(user.id, JSON.stringify(tokenData))
+            await redis.set('twitch_bot_id', user.id)
         }
-        await redis.set(user!.id, JSON.stringify(tokenData))
-        await redis.set('twitch_bot_id', user!.id)
         return context.redirect('/setup', 302)
     } catch (e) {
         if (e instanceof Error) {

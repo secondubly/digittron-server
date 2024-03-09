@@ -46,6 +46,9 @@ if (Astro.request.method === "POST") {
 				e.code === 'P2002'
 			) {
 				errorMessage = "Username already taken";
+			}  else if (e instanceof Prisma.PrismaClientInitializationError) {
+				errorMessage = "There was a fatal error";
+				console.log(e.message)
 			} else {
 				errorMessage = "An unknown error occurred";
 			}

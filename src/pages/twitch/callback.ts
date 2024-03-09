@@ -23,10 +23,11 @@ export const GET: APIRoute = async (context) => {
         // get account id
         const user = await getUserData(tokenData.accessToken)
         if (!user) {
-            // TODO: error handling
-            console.error('something went wrong')
+            console.warn('Couldn\'t fetch broadcaster information!')
+        } else {
+            await redis.set(user.id, JSON.stringify(tokenData))
+            await redis.set('twitch_broadcaster_id', user.id)
         }
-        await redis.set(user!.id, JSON.stringify(tokenData))
 
         context.cookies.set('oauth_result', jsonifyOauthCookie('twitch_broadcaster', true, error), {
             httpOnly: false,

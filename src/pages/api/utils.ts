@@ -1,6 +1,7 @@
 import type { APIContext } from "astro"
 import type { Category, ChannelInformation, GetChannelInformationResponse, GetUsersResponse, SearchCategoriesResponse, User } from "ts-twitch-api"
 import { redis } from "../../middleware"
+import { refreshUserToken, type AccessToken } from "@twurple/auth"
 
 type OauthResult = {
     stateType: string,
@@ -74,9 +75,9 @@ export const refreshOauth = async (refreshToken: string): Promise<string> => {
     return result.access_token
 }
 
-export const getStreamInfo = async (authToken: string, broadcasterID: string): Promise<ChannelInformation|null> => {
+export const getStreamInfo = async (authToken: AccessToken, broadcasterID: string): Promise<ChannelInformation|null> => {
     const headers = new Headers()
-    headers.append('Authorization', `Bearer ${authToken}`)
+    headers.append('Authorization', `Bearer ${authToken.accessToken}`)
     headers.append('Client-Id', import.meta.env.PUBLIC_TWITCH_CLIENT_ID)
     const url = `https://api.twitch.tv/helix/channels?broadcaster_id=${broadcasterID}`
     const response = await fetchWithRetries(url, {
@@ -84,29 +85,22 @@ export const getStreamInfo = async (authToken: string, broadcasterID: string): P
             headers
         })
 
-    const streamData = await response.json()
-    if (streamData.data?.length === 0) {
+    const { data: data } = await response.json() as GetChannelInformationResponse
+
+    if (data.length === 0) {
         return null
-    } else if (streamData.status === 401) {
-        const refreshToken = await redis.get('twitch_refresh_token') ?? null
-        if (!refreshToken) {
-            throw Error('Oauth Token invalid, anmd no refresh token found.')
-        }
-        
-        const updatedToken = await refreshOauth(refreshToken)
-        redis.set('twitch_access_token', updatedToken)
-        return getStreamInfo(updatedToken, broadcasterID)
     }
 
-    return (streamData as GetChannelInformationResponse).data[0]
+    return data[0]
 }
 
-export const getUserData = async (authToken: string, username?: string): Promise<User|null> => {
+export const getUserData = async (authToken: AccessToken, userId?: string): Promise<User|null> => {
     const headers = new Headers()
-    const url = username ? `https://api.twitch.tv/helix/users?login=${username}` : 'https://api.twitch.tv/helix/users'
-    let e
-
-    headers.append('Authorization', `Bearer ${authToken}`)
+    const url = userId ? `https://api.twitch.tv/helix/users?id=${userId}` : 'https://api.twitch.tv/helix/users'
+    let e: Error
+    let token: AccessToken
+    let result: GetUsersResponse
+    headers.append('Authorization', `Bearer ${authToken.accessToken}`)
     headers.append('Client-Id', import.meta.env.PUBLIC_TWITCH_CLIENT_ID)
     try {
         const response = await fetch(url, {
@@ -116,23 +110,23 @@ export const getUserData = async (authToken: string, username?: string): Promise
 
         if (!response.ok) {
             // refresh oauth token and try again
-            const refreshToken = await redis.get('twitch_refresh_token') ?? null
-            if (!refreshToken) {
-                throw Error('No refresh token found!')                
-            }
-
-            authToken = await refreshOauth(refreshToken)
-            await redis.set('twitch_access_token', authToken)
-        }
-        
-        const result = await response.json() as GetUsersResponse
-        if (result.data.length === 0) {
-            return null
+            token = await refreshUserToken(import.meta.env.PUBLIC_TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET!, authToken.refreshToken!)
+            return getUserData(token, userId)
         } else {
-            return result.data[0] as User
+            result = await response.json()
+            if (result.data.length === 0) {
+                return null
+            } else {
+                // just in case, store the auth token for the user to be safe
+                const user = result.data[0]
+                if (userId) {
+                    redis.set(user.id, JSON.stringify(authToken))   
+                }
+                return user
+            }
         }
     } catch(err) {
-        e = err
+        e = err as Error
     }
     // should never fire
     throw(e)

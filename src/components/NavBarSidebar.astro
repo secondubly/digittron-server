@@ -5,17 +5,28 @@ import ColorModeSwitch from './ColorModeSwitch.astro';
 import { redis } from "../middleware"
 import { getUserData } from "../pages/api/utils"
 import type { User } from "ts-twitch-api"
+import type { AccessToken } from '@twurple/auth';
 
 let imageString: string | null = await redis.get('twitch_image') ?? null
-let twitchToken = await redis.get('twitch_access_token')
-if (!twitchToken) {
-    // TODO: show an error message but still load the page
-}
-let userData: User | null = await getUserData(twitchToken!)
-if (!userData) {
-	throw Error('Could not fetch user data')
-}
 if (!imageString) {
+	const broadcasterId: string | null = await redis.get('twitch_broadcaster_id') ?? ''
+	if (!broadcasterId) {
+		throw new Error("Broadcaster ID not set, user should reauthenticate.")
+	}
+
+	let tokenJson = await redis.get(broadcasterId) ?? ''
+	if (tokenJson === '') {
+		console.warn("Broadcaster OAuth token not found, user should reauthenticate.")
+		Astro.redirect('/setup')
+		// TODO: add alert message when redirecting
+	}
+	const parsedToken: AccessToken = JSON.parse(tokenJson)
+
+	let userData: User | null = await getUserData(parsedToken, broadcasterId)
+	if (!userData) {
+		throw Error('Could not fetch user data')
+	}
+
     const response = await fetch(userData.profile_image_url)
     const blob  = await response.arrayBuffer()
     const contentType = response.headers.get('content-type')

@@ -13,7 +13,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
             message: 'Invalid Request'
         }), { status: 400 })        
     }
-    let broadcasterID: string | null = await redis.get('broadcaster_id') ?? null
+    let broadcasterID: string | null = await redis.get('twitch_broadcaster_id') ?? null
     let twitchToken = await redis.get('twitch_access_token') ?? null
     if (!twitchToken) {
         return new Response(JSON.stringify({
