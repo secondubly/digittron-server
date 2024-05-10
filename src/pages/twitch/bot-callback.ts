@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro"
 import { redis } from "../../middleware"
-import { getUserData, verifyOauth } from "../api/utils"
+import { getUserData, isValidToken, refreshOauth, verifyOauth } from "../api/utils"
 import { exchangeCode } from "@twurple/auth"
 
 export const GET: APIRoute = async (context) => {
     const storedState = context.cookies.get('bot-state')?.value
     const state = context.url.searchParams.get('state')
-    const code = context.url.searchParams.get('code')
+    let code = context.url.searchParams.get('code') as string
     const error = context.url.searchParams.get('error')
 
     const response = await verifyOauth(context, 'twitch', state, code, error, storedState)
@@ -16,31 +16,12 @@ export const GET: APIRoute = async (context) => {
 
     try {
         // get app access token as well if we don't have it
-        let app_access_token = await redis.get('app_access_token')
-        if (!app_access_token) {
-            const response = await fetch('https://id.twitch.tv/oauth2/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    'client_id': process.env.PUBLIC_TWITCH_CLIENT_ID ?? '',
-                    'client_secret': process.env.TWITCH_CLIENT_SECRET ?? '',
-                    'grant_type': 'client_credentials'
-                })
-            })
-
-            if (response.ok) {
-                const json = await response.json()
-                await redis.set('app_access_token', json.access_token)
-                app_access_token = json.access_token
-            }
-        }
         const redirect_uri = context.url.origin + '/twitch/bot-callback'
+
         // get oauth token using twurple
-        const tokenData = await exchangeCode(process.env.PUBLIC_TWITCH_CLIENT_ID!, process.env.TWITCH_CLIENT_SECRET! , code!, redirect_uri)
+        const tokenData = await exchangeCode(process.env.PUBLIC_TWITCH_CLIENT_ID!, process.env.TWITCH_CLIENT_SECRET!, code, redirect_uri)
         // get bot account id
-        const user = await getUserData(tokenData.accessToken)
+        const user = await getUserData(tokenData)
         if (!user) {
             // TODO: error handling
             console.warn('Couldn\'t fetch bot account information!')

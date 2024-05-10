@@ -75,6 +75,23 @@ export const refreshOauth = async (refreshToken: string): Promise<string> => {
     return result.access_token
 }
 
+export const isValidToken = async (token: string): Promise<boolean> => {
+    const url = `https://id.twitch.tv/oauth2/validate`
+    const headers = new Headers()
+    headers.append('Authorization', `Bearer ${token}`)
+    const response = await fetchWithRetries(url, {
+        method: 'GET',
+        headers
+    })
+
+    await response.json()
+    if (response.ok) {
+        return true
+    } else {
+        return false
+    }
+}
+
 export const getStreamInfo = async (authToken: AccessToken, broadcasterID: string): Promise<ChannelInformation|null> => {
     const headers = new Headers()
     headers.append('Authorization', `Bearer ${authToken.accessToken}`)
