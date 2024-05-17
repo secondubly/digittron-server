@@ -21,7 +21,7 @@ export const GET: APIRoute = async (context) => {
         const tokenData = await exchangeCode(process.env.PUBLIC_TWITCH_CLIENT_ID!, process.env.TWITCH_CLIENT_SECRET! , code!, redirect_uri)
         
         // get account id
-        const user = await getUserData(tokenData.accessToken)
+        const user = await getUserData(tokenData)
         if (!user) {
             console.warn('Couldn\'t fetch broadcaster information!')
         } else {
@@ -39,7 +39,7 @@ export const GET: APIRoute = async (context) => {
         return context.redirect('/setup', 302)
     } catch (e) {
         if (e instanceof Error) {
-            console.error('There was an error when retrieving the Twitch authorization code', e.cause)
+            console.error('There was an error when retrieving the Twitch authorization code', e)
             return new Response(null, {
                 status: 400
             })
