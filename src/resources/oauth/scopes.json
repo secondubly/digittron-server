@@ -86,6 +86,10 @@
             "desc": "View a list of all subscribers to a channel and check if a user is subscribed to a channel.",
             "tooltip": "Used to watch for new subscribers that haven't shared with chat."
         },
+        "channel:read:vips": {
+            "desc": "Read the list of VIPs in your channel.",
+            "tooltip": "Used to read VIP listings for user rankings and permissions."
+        },
         "moderation:read": {
             "desc": "Read the list of channel moderators.",
             "tooltip": "Used to watch for moderator add/remove events in EventSub."
