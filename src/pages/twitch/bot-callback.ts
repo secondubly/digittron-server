@@ -32,7 +32,7 @@ export const GET: APIRoute = async (context) => {
         return context.redirect('/setup', 302)
     } catch (e) {
         if (e instanceof Error) {
-            console.error('There was an error when retrieving the Twitch authorization code', e.cause)
+            console.error('There was an error when retrieving the Twitch authorization code', e)
             return new Response(null, {
                 status: 400
             })
