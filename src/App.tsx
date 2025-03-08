@@ -13,8 +13,9 @@ const App = () => {
 		<Router>
 			<div id="nav">
 				<Link to="/">home</Link>
-				<Link to="/setup">setup</Link>
 				<Link to="/login">login</Link>
+				<Link to="/setup">setup</Link>
+				<Link to="/">playlist viewer</Link>
 			</div>
 			<Routes>
 				<Route path="/" element={<HomePage />} />
