@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/secondubly/digittron-server#readme",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "fastify": "^5.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

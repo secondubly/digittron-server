@@ -19,10 +19,12 @@
 	"homepage": "https://github.com/secondubly/digittron-server#readme",
 	"dependencies": {
 		"@fastify/postgres": "^6.0.2",
+		"bcrypt": "^5.1.1",
 		"fastify": "^5.2.1",
 		"pg": "^8.13.3"
 	},
 	"devDependencies": {
+		"@types/bcrypt": "^5.0.2",
 		"@types/node": "^22.13.9",
 		"typescript": "~5.7.2"
 	}
