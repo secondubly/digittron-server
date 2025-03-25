@@ -34,6 +34,33 @@ server.post("/register", async (req, res) => {
     // 	console.log("compare result", result)
     // })
 });
+server.post("/handleLogin", async (req, res) => {
+    const { username, password } = req.body.formData;
+    const client = await server.pg.connect();
+    try {
+        const { rows } = await client.query("SELECT password FROM user_ WHERE username = $1", [username]);
+        if (rows.length > 1) {
+            const hashedPassword = rows[0];
+            const result = await bcrypt_1.default.compare(password, hashedPassword, (err, result) => {
+                console.log(err);
+                if (err) {
+                    // Handle error
+                    console.error("Error comparing passwords:", err);
+                    return;
+                }
+                console.log("result async", result);
+            });
+            console.log("result", result);
+        }
+        console.log(rows);
+    }
+    catch (e) {
+        console.error("error", e);
+    }
+    finally {
+        client.release();
+    }
+});
 server.listen({ port: 8080 }, (err, address) => {
     if (err) {
         console.error(err);

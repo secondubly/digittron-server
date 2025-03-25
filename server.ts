@@ -47,6 +47,42 @@ server.post(
 	}
 )
 
+server.post(
+	"/handleLogin",
+	async (req: FastifyRequest<{ Body: SignupRequest }>, res) => {
+		const { username, password } = req.body.formData
+
+		const client = await server.pg.connect()
+		try {
+			const { rows } = await client.query(
+				"SELECT password FROM user_ WHERE username = $1",
+				[username]
+			)
+
+			if (rows.length) {
+				const { password: hashedPassword } = rows[0]
+				await bcrypt.compare(password, hashedPassword, (err, result) => {
+					if (err) {
+						// Handle error
+						console.error("Error comparing passwords:", err)
+						return
+					}
+
+					if (result) {
+						return "login success"
+					} else {
+						return "login failed"
+					}
+				})
+			}
+		} catch (e) {
+			console.error("error", e)
+		} finally {
+			client.release()
+		}
+	}
+)
+
 server.listen({ port: 8080 }, (err, address) => {
 	if (err) {
 		console.error(err)

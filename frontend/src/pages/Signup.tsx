@@ -1,5 +1,4 @@
 import { ChangeEvent, ChangeEventHandler, FormEvent, useState } from "react"
-import { useNavigate } from "react-router"
 
 interface SignupForm {
 	username: string
@@ -7,8 +6,6 @@ interface SignupForm {
 }
 
 export const SignupPage = () => {
-	const navigate = useNavigate()
-
 	const [formData, setFormData] = useState<SignupForm>({
 		username: "",
 		password: "",
@@ -24,10 +21,6 @@ export const SignupPage = () => {
 
 	const handleSignup = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
-
-		const form = new FormData()
-		form.append("username", formData.username)
-		form.append("password", formData.password)
 
 		try {
 			const response = await fetch("http://localhost:8080/register", {
